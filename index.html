@@ -1250,37 +1250,39 @@
           async function initializePlatform() {
             appLoading.value = true;
             try {
-              const savedConfig = localStorage.getItem('manuf_firebase_config');
-              if (savedConfig) {
-                const parsed = JSON.parse(savedConfig);
-                firebaseSetupModal.configString = savedConfig;
-                
-                // Initialize Firebase Compact
-                if (firebase.apps.length === 0) {
-                  firebase.initializeApp(parsed);
-                }
-                
-                db.value = firebase.firestore();
-                auth.value = firebase.auth();
-                isDemoMode.value = false;
-                
-                // Subscribe Auth state
-                auth.value.onAuthStateChanged((usr) => {
-                  user.value = usr;
-                  if (usr) {
-                    isGuestMode.value = false;
-                    subscribeToFirestore();
-                  } else {
-                    insumos.value = [];
-                    productos.value = [];
-                    ventas.value = [];
-                  }
-                  appLoading.value = false;
-                });
-                
-              } else {
-                setOfflineFallback();
+              // 1. INYECTAMOS TU CONFIGURACIÓN DIRECTAMENTE AQUÍ
+              const firebaseConfig = {
+                apiKey: "AIzaSyAePr6qzWR-byXiQ9QMOeqsPKW-iXwmEWQ",
+                authDomain: "gestor-de-triqueta-lunar.firebaseapp.com",
+                projectId: "gestor-de-triqueta-lunar",
+                storageBucket: "gestor-de-triqueta-lunar.firebasestorage.app",
+                messagingSenderId: "1062349027171",
+                appId: "1:1062349027171:web:5c9ed3792975f243a14556"
+              };
+              
+              // 2. Inicializamos Firebase de forma forzada
+              if (firebase.apps.length === 0) {
+                firebase.initializeApp(firebaseConfig);
               }
+              
+              db.value = firebase.firestore();
+              auth.value = firebase.auth();
+              isDemoMode.value = false;
+              
+              // 3. Escuchamos el estado de autenticación
+              auth.value.onAuthStateChanged((usr) => {
+                user.value = usr;
+                if (usr) {
+                  isGuestMode.value = false;
+                  subscribeToFirestore();
+                } else {
+                  insumos.value = [];
+                  productos.value = [];
+                  ventas.value = [];
+                }
+                appLoading.value = false;
+              });
+              
             } catch (err) {
               console.error("Firebase startup error:", err);
               setOfflineFallback();
