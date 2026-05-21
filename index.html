@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FabriQ - Gestor de Manufactura</title>
+    <title>Triqueta Lunar - Gestor de Manufactura</title>
     <!-- Vue 3 CDN (Composition API Global) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <!-- Tailwind CSS CDN -->
@@ -53,7 +53,7 @@
             <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xl shadow-lg shadow-indigo-600/30">
               <i class="fas fa-cubes-stacked"></i>
             </div>
-            <span class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">FabriQ</span>
+            <span class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Triqueta Lunar</span>
           </div>
 
           <h2 class="text-2xl font-bold text-slate-800 tracking-tight leading-tight mb-2">Control de Manufactura</h2>
@@ -85,7 +85,7 @@
             <div class="w-8 h-8 bg-indigo-50 rounded flex items-center justify-center">
               <i class="fas fa-cubes-stacked text-sm"></i>
             </div>
-            <span class="font-bold tracking-tight uppercase text-sm">FabriQ</span>
+            <span class="font-bold tracking-tight uppercase text-sm">Triqueta Lunar</span>
             <span v-if="isDemoMode" class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold tracking-wide ml-1">DEMO</span>
           </div>
           <button @click="mobileMenuOpen = !mobileMenuOpen" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded">
@@ -100,7 +100,7 @@
               <div class="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center text-white text-base shadow-md shadow-indigo-500/20">
                 <i class="fas fa-cubes-stacked"></i>
               </div>
-              <span class="text-lg font-bold tracking-tight uppercase text-white">FabriQ</span>
+              <span class="text-lg font-bold tracking-tight uppercase text-white">Triqueta Lunar</span>
             </div>
             <span v-if="isDemoMode" class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-wider scale-90">Demo</span>
           </div>
@@ -734,7 +734,7 @@
                   </div>
                   <div>
                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Correo de contacto</label>
-                    <input v-model="empresaConfig.email" type="email" placeholder="Ej. contacto@fabriq.com" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+                    <input v-model="empresaConfig.email" type="email" placeholder="Ej. contacto@Triqueta Lunar.com" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
                   </div>
                 </div>
                 <div class="flex justify-end pt-2">
@@ -839,7 +839,7 @@
                     <div class="w-7 h-7 bg-indigo-600 rounded flex items-center justify-center text-white text-sm font-bold shadow-md">
                       <i class="fas fa-cubes-stacked"></i>
                     </div>
-                    <span class="text-xl font-black tracking-tight text-slate-900 uppercase">FabriQ</span>
+                    <span class="text-xl font-black tracking-tight text-slate-900 uppercase">Triqueta Lunar</span>
                   </div>
                   <p class="text-[10px] text-slate-500 font-medium">Manufactura y Diseño Personalizado</p>
                   
@@ -905,7 +905,7 @@
               <!-- Footer conditions metadata -->
               <div class="mt-12 text-center text-[9px] text-slate-400 border-t border-dashed border-slate-200 pt-4 font-medium leading-relaxed">
                 Esta cotización tiene fines meramente administrativos e informativos. Los precios reflejados están sujetos a modificaciones según la variación del coste de las materias primas necesarias para la fabricación.
-                <p class="font-bold text-indigo-500 mt-1 uppercase tracking-widest text-[8px]">¡Gracias por confiar en FabriQ!</p>
+                <p class="font-bold text-indigo-500 mt-1 uppercase tracking-widest text-[8px]">¡Gracias por confiar en Triqueta Lunar!</p>
               </div>
 
             </div>
@@ -1878,7 +1878,7 @@
             const element = document.getElementById('pdf-container');
             const options = {
               margin: 10,
-              filename: `Cotizacion_${pdfPreviewModal.data.id || 'FabriQ'}.pdf`,
+              filename: `Cotizacion_${pdfPreviewModal.data.id || 'Triqueta Lunar'}.pdf`,
               image: { type: 'jpeg', quality: 0.98 },
               html2canvas: { scale: 2, useCORS: true },
               jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
