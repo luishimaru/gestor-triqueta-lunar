@@ -1605,17 +1605,26 @@
               isDemoMode.value = false;
               
               auth.value.onAuthStateChanged((usr) => {
-                user.value = usr;
+                const correosAutorizados = ["ludwigcrc@gmail.com", "danna1995@gmail.com"];
+                
                 if (usr) {
-                  isGuestMode.value = false;
-                  subscribeToFirestore();
+                  // Validamos el correo antes de dejar pasar al usuario
+                  if (correosAutorizados.includes(usr.email)) {
+                    user.value = usr;
+                    isGuestMode.value = false;
+                    subscribeToFirestore();
+                    appLoading.value = false;
+                  } else {
+                    // Si el correo no está en la lista, cerramos sesión inmediatamente
+                    auth.value.signOut();
+                    alert("Acceso denegado: Tu cuenta no tiene permisos para operar en Triqueta Lunar.");
+                    user.value = null;
+                    appLoading.value = false;
+                  }
                 } else {
-                  insumos.value = [];
-                  productos.value = [];
-                  ventas.value = [];
-                  cotizaciones.value = [];
+                  user.value = null;
+                  appLoading.value = false;
                 }
-                appLoading.value = false;
               });
               
             } catch (err) {
