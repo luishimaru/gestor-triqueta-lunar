@@ -24,6 +24,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf.js CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Firebase V9 Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -80,7 +82,7 @@
         <!-- MOBILE HEADER -->
         <header class="md:hidden bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 py-3 text-white">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center">
+            <div class="w-8 h-8 bg-indigo-50 rounded flex items-center justify-center">
               <i class="fas fa-cubes-stacked text-sm"></i>
             </div>
             <span class="font-bold tracking-tight uppercase text-sm">FabriQ</span>
@@ -559,15 +561,15 @@
 
                 <!-- RIGHT CARTS (1/3 width) -->
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full justify-between">
-                  <div>
-                    <h3 class="text-sm font-semibold tracking-tight text-slate-400 uppercase mb-4 flex items-center justify-between">
+                  <div class="overflow-y-auto flex-1 pr-1 max-h-[420px] space-y-4">
+                    <h3 class="text-sm font-semibold tracking-tight text-slate-400 uppercase flex items-center justify-between">
                       <span>Carrito de Venta</span>
                       <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-0.5 rounded font-mono">{{ cart.reduce((acc, i) => acc + i.cantidad, 0) }}</span>
                     </h3>
 
                     <!-- Cart Content -->
-                    <div class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-1">
-                      <div v-if="cart.length === 0" class="text-center text-slate-400 py-8">
+                    <div class="space-y-3">
+                      <div v-if="cart.length === 0" class="text-center text-slate-400 py-6">
                         <i class="fas fa-basket-shopping text-3xl mb-2 text-slate-300"></i>
                         <p class="text-sm">El carrito está vacío</p>
                       </div>
@@ -590,13 +592,23 @@
                         </div>
                       </div>
                     </div>
+
+                    <!-- OPTIONAL CUSTOMER DETAILS FOR QUOTATION -->
+                    <div v-if="cart.length > 0" class="border-t border-slate-100 pt-3 space-y-2">
+                      <span class="text-[11px] uppercase font-bold text-slate-400 tracking-wider block"><i class="fas fa-user-tie mr-1"></i> Datos del Cliente (Opcional para Cotización)</span>
+                      <input v-model="posCliente.nombre" type="text" placeholder="Nombre / Banda / Empresa" class="w-full px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                      <div class="grid grid-cols-2 gap-2">
+                        <input v-model="posCliente.telefono" type="text" placeholder="Teléfono" class="w-full px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <input v-model="posCliente.email" type="email" placeholder="Correo electrónico" class="w-full px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Bottom: Stock Availability Guard and Totals -->
-                  <div class="border-t border-slate-100 pt-4 space-y-4">
+                  <div class="border-t border-slate-100 pt-3 space-y-3 shrink-0">
                     
                     <!-- DYNAMIC INVENTORY STOCK METRIC EVALUATOR -->
-                    <div v-if="cart.length > 0" class="p-3 rounded-xl text-xs space-y-2 border" :class="isStockDeficit ? 'bg-red-50 border-red-100 text-red-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'">
+                    <div v-if="cart.length > 0" class="p-3 rounded-xl text-xs space-y-1 border" :class="isStockDeficit ? 'bg-red-50 border-red-100 text-red-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'">
                       <div class="font-semibold flex items-center gap-1.5">
                         <i class="fas" :class="isStockDeficit ? 'fa-circle-exclamation text-red-500' : 'fa-circle-check text-emerald-500'"></i>
                         {{ isStockDeficit ? 'Defecto de Insumos / Materias' : 'Suficiente Materia Prima para Manufacturar' }}
@@ -612,7 +624,7 @@
                     </div>
 
                     <!-- Money Summary -->
-                    <div class="space-y-1.5 font-semibold text-xs leading-none">
+                    <div class="space-y-1 font-semibold text-xs leading-none">
                       <div class="flex justify-between text-slate-500">
                         <span>Costo fabric. estimado:</span>
                         <span class="font-mono">${{ cartCostTotal.toFixed(2) }}</span>
@@ -623,27 +635,113 @@
                       </div>
                     </div>
 
-                    <button @click="processCotizacion" :disabled="cart.length === 0" class="w-full mb-3 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm flex items-center justify-center gap-2 transition hover:bg-slate-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-sm">
-                      <i class="fas fa-file-invoice"></i>
-                      Guardar Cotización (No descuenta stock)
-                    </button>
+                    <!-- Actions Triggers -->
+                    <div class="space-y-2">
+                      <!-- Register Trigger (Cotización) -->
+                      <button @click="processCotizacion" :disabled="cart.length === 0" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs">
+                        <i class="fas fa-file-invoice"></i>
+                        Guardar Cotización (No descuenta stock)
+                      </button>
 
-                    <!-- Register Trigger -->
-                    <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-sm">
-                      <i class="fas fa-cash-register"></i>
-                      Procesar y Descontar Almacén
-                    </button>
+                      <!-- Register Trigger (Venta) -->
+                      <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit" class="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-xs">
+                        <i class="fas fa-cash-register"></i>
+                        Procesar y Descontar Almacén
+                      </button>
+                    </div>
                   </div>
                 </div>
 
               </div>
             </section>
 
-            <!-- TAB 5: CONFIGURATION -->
+            <!-- TAB 5: HISTORIAL DE COTIZACIONES -->
+            <section v-if="currentTab === 'cotizaciones'" class="space-y-6">
+              <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Historial de Cotizaciones</h1>
+                <p class="text-slate-500 text-sm">Visualiza, edita o exporta cotizaciones guardadas para tus clientes y bandas locales en formato PDF.</p>
+              </div>
+
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
+                      <tr>
+                        <th class="px-6 py-3">Código de Cotización</th>
+                        <th class="px-6 py-3">Fecha / Hora</th>
+                        <th class="px-6 py-3">Cliente / Entidad</th>
+                        <th class="px-6 py-3">Artículos</th>
+                        <th class="px-6 py-3 text-right">Importe Total</th>
+                        <th class="px-6 py-3 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-slate-100">
+                      <tr v-if="cotizaciones.length === 0">
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                          <i class="fas fa-file-invoice text-3xl mb-2 text-slate-300 block"></i>
+                          No hay cotizaciones guardadas en el sistema.
+                        </td>
+                      </tr>
+                      <tr v-for="c in cotizaciones" :key="c.id" class="hover:bg-slate-50/80 transition duration-150">
+                        <td class="py-3 px-6 font-mono font-bold text-slate-900 text-xs">{{ c.id }}</td>
+                        <td class="py-3 px-6 text-slate-400 text-xs">{{ formatDate(c.fecha) }}</td>
+                        <td class="py-3 px-6 font-medium text-slate-700">
+                          {{ c.cliente?.nombre || 'General / Sin especificar' }}
+                          <p v-if="c.cliente?.telefono" class="text-[10px] text-slate-400 font-mono">{{ c.cliente.telefono }}</p>
+                        </td>
+                        <td class="py-3 px-6">
+                          <span v-for="(p, idx) in c.productos" :key="idx" class="inline-block bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded mr-1">
+                            {{ p.cantidad }}x {{ p.nombre }}
+                          </span>
+                        </td>
+                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-bold">${{ (c.total_cotizado || 0).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right">
+                          <div class="flex items-center justify-end gap-2">
+                            <button @click="openPdfPreview(c)" class="px-2.5 py-1 text-xs font-semibold bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-100 transition flex items-center gap-1 cursor-pointer">
+                              <i class="fas fa-print text-[10px]"></i> Ver / PDF
+                            </button>
+                            <button @click="deleteCotizacion(c.id)" class="w-7 h-7 bg-red-50 text-red-500 rounded-lg border border-red-100 hover:bg-red-100 transition flex items-center justify-center cursor-pointer">
+                              <i class="fas fa-trash-can text-xs"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- TAB 6: CONFIGURATION / AJUSTES -->
             <section v-if="currentTab === 'config'" class="space-y-6">
               <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
-                <p class="text-slate-500 text-sm">Sincroniza bases de datos o reinicializa materias primas y recetas.</p>
+                <p class="text-slate-500 text-sm">Sincroniza bases de datos, ajusta los datos comerciales de tu empresa o reinicializa materias primas y recetas.</p>
+              </div>
+
+              <!-- DATOS DE EMPRESA PARA COTIZACIONES -->
+              <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                  <div class="w-9.5 h-9.5 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 text-lg">
+                    <i class="fas fa-building-user"></i>
+                  </div>
+                  <h3 class="text-base font-bold text-slate-900">Datos comerciales de mi Empresa (Para PDFs)</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Teléfono corporativo</label>
+                    <input v-model="empresaConfig.telefono" type="text" placeholder="Ej. +57 300 123 4567" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+                  </div>
+                  <div>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Correo de contacto</label>
+                    <input v-model="empresaConfig.email" type="email" placeholder="Ej. contacto@fabriq.com" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+                  </div>
+                </div>
+                <div class="flex justify-end pt-2">
+                  <button @click="saveEmpresaConfig" class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/10 cursor-pointer transition">
+                    Guardar Datos de Empresa
+                  </button>
+                </div>
               </div>
 
               <!-- FIREBASE INTEGRATOR MODULE -->
@@ -660,7 +758,7 @@
                   <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <span class="text-xs font-semibold text-slate-400 block tracking-wider uppercase">Estado de Conexión</span>
                     <div class="flex items-center gap-2.5 mt-2">
-                      <span class="w-3.5 h-3.5 rounded-full inline-block animate-pulse" :class="isDemoMode ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                      <span class="w-3.5 h-3.5 rounded-full inline-block " :class="isDemoMode ? 'bg-amber-500' : 'bg-emerald-500'"></span>
                       <span class="font-bold text-slate-800 text-sm">
                         {{ isDemoMode ? 'Modo de Simulación (Offline)' : 'Conectado a Firebase Cloud Activo' }}
                       </span>
@@ -711,6 +809,109 @@
       </template>
 
       <!-- MODALS & DIALOGS LAYERS -->
+
+      <!-- GORGEOUS PDF PREVIEW MODAL -->
+      <div v-if="pdfPreviewModal.open" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center py-4 px-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[95vh] overflow-hidden">
+          <div class="p-4 border-b border-slate-150 bg-slate-50 flex justify-between items-center shrink-0">
+            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+              <i class="fas fa-file-pdf text-red-500 text-base"></i> Previsualización de la Cotización
+            </h3>
+            <div class="flex items-center gap-2">
+              <button @click="downloadPdf" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-md transition cursor-pointer">
+                <i class="fas fa-download"></i> Descargar PDF
+              </button>
+              <button @click="pdfPreviewModal.open = false" class="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition cursor-pointer">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Document Canvas to capture for PDF -->
+          <div class="p-8 overflow-y-auto flex-1 bg-slate-100 flex justify-center">
+            <div id="pdf-container" class="bg-white w-[100%] max-w-[580px] p-8 shadow-sm border border-slate-200 text-slate-800 text-xs rounded-sm relative" style="font-family: 'Inter', sans-serif; line-height: 1.5;">
+              
+              <!-- PDF Header Layout -->
+              <div class="flex justify-between items-start border-b-2 border-indigo-600 pb-5 mb-5">
+                <div>
+                  <!-- Styled Business Name & Identity -->
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 bg-indigo-600 rounded flex items-center justify-center text-white text-sm font-bold shadow-md">
+                      <i class="fas fa-cubes-stacked"></i>
+                    </div>
+                    <span class="text-xl font-black tracking-tight text-slate-900 uppercase">FabriQ</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 font-medium">Manufactura y Diseño Personalizado</p>
+                  
+                  <!-- Company Information (Optional / Configured) -->
+                  <div class="mt-3 text-[10px] text-slate-400 space-y-0.5 font-mono">
+                    <p v-if="empresaConfig.telefono"><i class="fas fa-phone text-slate-300 w-3"></i> {{ empresaConfig.telefono }}</p>
+                    <p v-if="empresaConfig.email"><i class="fas fa-envelope text-slate-300 w-3"></i> {{ empresaConfig.email }}</p>
+                    <p><i class="fas fa-location-dot text-slate-300 w-3"></i> Bogotá, Colombia</p>
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <h2 class="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-1">Cotización</h2>
+                  <p class="font-mono font-bold text-slate-900 text-[11px] bg-slate-100 px-2 py-0.5 rounded inline-block mb-2">{{ pdfPreviewModal.data.id }}</p>
+                  <p class="text-[10px] text-slate-400 block font-mono">Fecha: {{ new Date(pdfPreviewModal.data.fecha).toLocaleDateString() }}</p>
+                </div>
+              </div>
+
+              <!-- Client / Person Recipient Details Layout -->
+              <div v-if="pdfPreviewModal.data.cliente?.nombre || pdfPreviewModal.data.cliente?.telefono || pdfPreviewModal.data.cliente?.email" class="bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-5">
+                <span class="text-[9px] uppercase font-bold text-indigo-600 tracking-wider block mb-1.5">Dirigido a:</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+                  <p v-if="pdfPreviewModal.data.cliente?.nombre" class="font-bold text-slate-800"><i class="fas fa-user text-slate-300 mr-1.5 text-[9px]"></i> {{ pdfPreviewModal.data.cliente.nombre }}</p>
+                  <p v-if="pdfPreviewModal.data.cliente?.telefono" class="font-mono text-slate-500"><i class="fas fa-phone text-slate-300 mr-1.5 text-[9px]"></i> {{ pdfPreviewModal.data.cliente.telefono }}</p>
+                  <p v-if="pdfPreviewModal.data.cliente?.email" class="font-mono text-slate-500 sm:col-span-2 mt-0.5"><i class="fas fa-envelope text-slate-300 mr-1.5 text-[9px]"></i> {{ pdfPreviewModal.data.cliente.email }}</p>
+                </div>
+              </div>
+
+              <!-- Table Specifications items list -->
+              <table class="w-full text-left mb-6 border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-400 text-[9px] uppercase tracking-wider font-bold">
+                    <th class="py-2 pr-4">Descripción del Artículo</th>
+                    <th class="py-2 px-3 text-center w-16">Cantidad</th>
+                    <th class="py-2 px-3 text-right w-24">Precio Unit.</th>
+                    <th class="py-2 pl-4 text-right w-24">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-[11px] text-slate-700">
+                  <tr v-for="item in pdfPreviewModal.data.productos" :key="item.id">
+                    <td class="py-2.5 pr-4 font-semibold text-slate-800">{{ item.nombre }}</td>
+                    <td class="py-2.5 px-3 text-center font-mono font-medium">{{ item.cantidad }}</td>
+                    <td class="py-2.5 px-3 text-right font-mono">${{ item.precio_venta.toFixed(2) }}</td>
+                    <td class="py-2.5 pl-4 text-right font-mono font-bold text-slate-900">${{ (item.precio_venta * item.cantidad).toFixed(2) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Totals block design -->
+              <div class="flex justify-end border-t-2 border-slate-100 pt-4">
+                <div class="w-48 text-right space-y-1.5">
+                  <div class="flex justify-between text-[11px] font-semibold text-slate-500">
+                    <span>Subtotal:</span>
+                    <span class="font-mono">${{ (pdfPreviewModal.data.total_cotizado || 0).toFixed(2) }}</span>
+                  </div>
+                  <div class="flex justify-between text-slate-900 border-t border-slate-100 pt-1.5">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Total Cotizado:</span>
+                    <span class="text-sm font-black font-mono">${{ (pdfPreviewModal.data.total_cotizado || 0).toFixed(2) }} COP</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer conditions metadata -->
+              <div class="mt-12 text-center text-[9px] text-slate-400 border-t border-dashed border-slate-200 pt-4 font-medium leading-relaxed">
+                Esta cotización tiene fines meramente administrativos e informativos. Los precios reflejados están sujetos a modificaciones según la variación del coste de las materias primas necesarias para la fabricación.
+                <p class="font-bold text-indigo-500 mt-1 uppercase tracking-widest text-[8px]">¡Gracias por confiar en FabriQ!</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- 1. MODAL INSUMO (ADD/EDIT) -->
       <div v-if="insumoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
@@ -925,12 +1126,13 @@
 
       createApp({
         setup() {
-          // Tabs structure
+          // Tabs structure including Cotizaciones History
           const tabs = [
             { id: 'dashboard', name: 'Dashboard', icon: 'fa-chart-pie' },
             { id: 'insumos', name: 'En almacén (Insumos)', icon: 'fa-box-open' },
             { id: 'catalogo', name: 'Catálogo de Diseños (Recetas)', icon: 'fa-receipt' },
             { id: 'pos', name: 'Punto de Venta POS', icon: 'fa-shopping-cart' },
+            { id: 'cotizaciones', name: 'Historial Cotizaciones', icon: 'fa-file-invoice' },
             { id: 'config', name: 'Ajustes', icon: 'fa-gears' },
           ];
 
@@ -948,10 +1150,24 @@
           const insumos = ref([]);
           const productos = ref([]);
           const ventas = ref([]);
+          const cotizaciones = ref([]);
 
           // Form Search Queries
           const insumoSearchQuery = ref('');
           const posSearchQuery = ref('');
+
+          // Company configurations loaded from localStorage
+          const empresaConfig = reactive({
+            telefono: localStorage.getItem('manuf_empresa_telefono') || '',
+            email: localStorage.getItem('manuf_empresa_email') || ''
+          });
+
+          // POS Optional Client details fields
+          const posCliente = reactive({
+            nombre: '',
+            telefono: '',
+            email: ''
+          });
 
           // Core models for editing modals
           const insumoModal = reactive({
@@ -969,6 +1185,11 @@
           const firebaseSetupModal = reactive({
             open: false,
             configString: ''
+          });
+
+          const pdfPreviewModal = reactive({
+            open: false,
+            data: { id: '', fecha: '', productos: [], total_cotizado: 0, cliente: {} }
           });
 
           // Point of Sale Cart Status Array
@@ -1001,7 +1222,7 @@
               costo_operativo: 4.50,
               receta: [
                 { insumoId: 'base_polo', cantidad: 1 },
-                { insumoId: 'fil_dtf', cantidad: 140 }
+                { insumoId: 'fil_dtf', bandwidth: 140, cantidad: 140 }
               ]
             }
           ];
@@ -1012,7 +1233,7 @@
               fecha: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
               productos: [{ id: 'art_dragon', nombre: 'Dragón Articulado Impresión 3D', precio_venta: 18.50, cantidad: 2 }],
               total_venta: 37.00,
-              total_costo: 12.30, // calculated later
+              total_costo: 12.30,
               total_ganancia: 24.70
             },
             {
@@ -1025,6 +1246,17 @@
               total_venta: 42.50,
               total_costo: 16.20,
               total_ganancia: 26.30
+            }
+          ];
+
+          const demoCotizaciones = [
+            {
+              id: 'COT-SAMPLE1',
+              fecha: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+              productos: [{ id: 'art_dragon', nombre: 'Dragón Articulado Impresión 3D', precio_venta: 18.50, cantidad: 5 }],
+              total_cotizado: 92.50,
+              total_costo_estimado: 30.75,
+              cliente: { nombre: 'Banda Local Los Rockers', telefono: '315998877', email: 'rockers@mail.com' }
             }
           ];
 
@@ -1041,6 +1273,13 @@
             if (!isoStr) return '';
             const d = new Date(isoStr);
             return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+
+          // SAVE COMPANY METADATA
+          function saveEmpresaConfig() {
+            localStorage.setItem('manuf_empresa_telefono', empresaConfig.telefono);
+            localStorage.setItem('manuf_empresa_email', empresaConfig.email);
+            alert("Información comercial de la empresa guardada exitosamente.");
           }
 
           // INIT APPS & RECONSTRUCT SEED DATA
@@ -1060,7 +1299,6 @@
               totalProfit += (v.total_ganancia || 0);
             });
 
-            // Adjust edge case
             if (totalProfit === 0 && totalSales > 0) {
               totalProfit = totalSales - totalCost;
             }
@@ -1255,7 +1493,6 @@
           async function initializePlatform() {
             appLoading.value = true;
             try {
-              // 1. INYECTAMOS TU CONFIGURACIÓN DIRECTAMENTE AQUÍ
               const firebaseConfig = {
                 apiKey: "AIzaSyAePr6qzWR-byXiQ9QMOeqsPKW-iXwmEWQ",
                 authDomain: "gestor-de-triqueta-lunar.firebaseapp.com",
@@ -1265,7 +1502,6 @@
                 appId: "1:1062349027171:web:5c9ed3792975f243a14556"
               };
               
-              // 2. Inicializamos Firebase de forma forzada
               if (firebase.apps.length === 0) {
                 firebase.initializeApp(firebaseConfig);
               }
@@ -1274,7 +1510,6 @@
               auth.value = firebase.auth();
               isDemoMode.value = false;
               
-              // 3. Escuchamos el estado de autenticación
               auth.value.onAuthStateChanged((usr) => {
                 user.value = usr;
                 if (usr) {
@@ -1284,6 +1519,7 @@
                   insumos.value = [];
                   productos.value = [];
                   ventas.value = [];
+                  cotizaciones.value = [];
                 }
                 appLoading.value = false;
               });
@@ -1300,20 +1536,21 @@
             auth.value = null;
             user.value = null;
             
-            // Check LocalStorage caches
             const localIns = localStorage.getItem('manuf_insumos');
             const localProds = localStorage.getItem('manuf_productos');
             const localVents = localStorage.getItem('manuf_ventas');
+            const localQuotes = localStorage.getItem('manuf_cotizaciones');
 
-            if (localIns && localProds && localVents) {
+            if (localIns && localProds && localVents && localQuotes) {
               insumos.value = JSON.parse(localIns);
               productos.value = JSON.parse(localProds);
               ventas.value = JSON.parse(localVents);
+              cotizaciones.value = JSON.parse(localQuotes);
             } else {
-              // Seed defaults
               insumos.value = JSON.parse(JSON.stringify(demoInsumos));
               productos.value = JSON.parse(JSON.stringify(demoProductos));
               ventas.value = JSON.parse(JSON.stringify(demoVentas));
+              cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
               persistLocalData();
             }
             appLoading.value = false;
@@ -1323,12 +1560,14 @@
             localStorage.setItem('manuf_insumos', JSON.stringify(insumos.value));
             localStorage.setItem('manuf_productos', JSON.stringify(productos.value));
             localStorage.setItem('manuf_ventas', JSON.stringify(ventas.value));
+            localStorage.setItem('manuf_cotizaciones', JSON.stringify(cotizaciones.value));
           }
 
           // FIRESTORE SUBSCRIPTIONS
           let unsubscribeInsumos = null;
           let unsubscribeProductos = null;
           let unsubscribeVentas = null;
+          let unsubscribeCotizaciones = null;
 
           function subscribeToFirestore() {
             if (!db.value || !user.value) return;
@@ -1338,10 +1577,9 @@
               snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
               insumos.value = list;
               if (insumos.value.length === 0) {
-                // Initialize cloud database with initial assets
                 demoInsumos.forEach(item => db.value.collection('insumos').doc(item.id).set(item));
               }
-            }, err => alert('Fallo de lectura en Insumos: ' + err.message));
+            }, err => console.error(err));
 
             unsubscribeProductos = db.value.collection('productos').onSnapshot(snap => {
               const list = [];
@@ -1350,7 +1588,7 @@
               if (productos.value.length === 0) {
                 demoProductos.forEach(item => db.value.collection('productos').doc(item.id).set(item));
               }
-            }, err => alert('Fallo de lectura en Productos: ' + err.message));
+            }, err => console.error(err));
 
             unsubscribeVentas = db.value.collection('ventas').onSnapshot(snap => {
               const list = [];
@@ -1359,13 +1597,23 @@
               if (ventas.value.length === 0) {
                 demoVentas.forEach(item => db.value.collection('ventas').doc(item.id).set(item));
               }
-            }, err => alert('Fallo de lectura en Ventas: ' + err.message));
+            }, err => console.error(err));
+
+            unsubscribeCotizaciones = db.value.collection('cotizaciones').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              cotizaciones.value = list;
+              if (cotizaciones.value.length === 0) {
+                demoCotizaciones.forEach(item => db.value.collection('cotizaciones').doc(item.id).set(item));
+              }
+            }, err => alert('Fallo de lectura en Cotizaciones: ' + err.message));
           }
 
           function clearFirestoreSubscriptions() {
             if (unsubscribeInsumos) unsubscribeInsumos();
             if (unsubscribeProductos) unsubscribeProductos();
             if (unsubscribeVentas) unsubscribeVentas();
+            if (unsubscribeCotizaciones) unsubscribeCotizaciones();
           }
 
           // GOOGLE SIGN IN POPUP
@@ -1380,7 +1628,6 @@
               const provider = new firebase.auth.GoogleAuthProvider();
               await auth.value.signInWithPopup(provider);
             } catch (err) {
-              // Silenciamos la alerta molestosa cambiando 'alert' por 'console.warn'
               console.warn("Aviso de Firebase Auth (Ignorable si inició sesión): " + err.message);
               appLoading.value = false;
             }
@@ -1501,7 +1748,6 @@
               return;
             }
 
-            // check recipes
             const hasEmptyItems = data.receta.some(r => !r.insumoId || r.cantidad <= 0);
             if (hasEmptyItems) {
               alert("Asegúrese de definir la materia prima y cantidades positivas para cada línea de la receta.");
@@ -1549,6 +1795,98 @@
             }
           }
 
+          // SAVING COTIZACIONES (WITHOUT TOUCHING ALMACEN RAW INVENTORY STOCK)
+          async function processCotizacion() {
+            if (cart.value.length === 0) return;
+
+            const currentId = 'COT-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+            
+            const recProducts = cart.value.map(item => {
+              const baseValue = productos.value.find(p => p.id === item.productoId);
+              return {
+                id: item.productoId,
+                nombre: baseValue.nombre,
+                precio_venta: baseValue.precio_venta,
+                cantidad: item.cantidad
+              };
+            });
+
+            const quoteDoc = {
+              id: currentId,
+              fecha: new Date().toISOString(),
+              productos: recProducts,
+              total_cotizado: cartPriceTotal.value,
+              total_costo_estimado: cartCostTotal.value,
+              cliente: {
+                nombre: posCliente.nombre.trim(),
+                telefono: posCliente.telefono.trim(),
+                email: posCliente.email.trim()
+              }
+            };
+
+            if (isDemoMode.value) {
+              cotizaciones.value.push(quoteDoc);
+              persistLocalData();
+              cart.value = [];
+              posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+              alert(`¡Cotización local guardada! Código: ${currentId}.`);
+              currentTab.value = 'cotizaciones';
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('cotizaciones').doc(currentId).set(quoteDoc);
+                cart.value = [];
+                posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+                alert(`¡Cotización cloud registrada! Código: ${currentId}. (Inventario intacto).`);
+                currentTab.value = 'cotizaciones';
+              } catch (err) {
+                alert("Error guardando cotización en Firestore: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          // REMOVE A SAVED QUOTATION DOCUMENT
+          async function deleteCotizacion(id) {
+            const c = confirm("¿Estás seguro de descartar esta cotización del registro?");
+            if (!c) return;
+
+            if (isDemoMode.value) {
+              cotizaciones.value = cotizaciones.value.filter(q => q.id !== id);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('cotizaciones').doc(id).delete();
+              } catch (err) {
+                alert("Error eliminando cotización: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          // SHOW THE PDF PREVIEW MODAL CANVAS LAYOUT
+          function openPdfPreview(cotizacion) {
+            pdfPreviewModal.data = JSON.parse(JSON.stringify(cotizacion));
+            pdfPreviewModal.open = true;
+          }
+
+          // EXPORT HTML ELEMENT CANVAS LAYOUT TO LOCAL DEVICE STORAGE AS A BEAUTIFUL PDF
+          function downloadPdf() {
+            const element = document.getElementById('pdf-container');
+            const options = {
+              margin: 10,
+              filename: `Cotizacion_${pdfPreviewModal.data.id || 'FabriQ'}.pdf`,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(options).from(element).save();
+          }
+
           // PROCESSING POS SALES TRANSACTION (DECREMENTS RAW STOCK ATOMICALLY)
           async function processSalesCheckout() {
             if (cart.value.length === 0) return;
@@ -1559,7 +1897,6 @@
 
             const currentId = 'TX-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
             
-            // Map items for billing receipt document
             const recProducts = cart.value.map(item => {
               const baseValue = productos.value.find(p => p.id === item.productoId);
               return {
@@ -1580,7 +1917,6 @@
             };
 
             if (isDemoMode.value) {
-              // Locally subtract materials stock
               const consolidations = consolidatedCartRequiredIngredients.value;
               
               Object.keys(consolidations).forEach(insId => {
@@ -1596,20 +1932,16 @@
               alert(`¡Venta procesada con éxito! Factura #${currentId} generada. Almacén actualizado.`);
               currentTab.value = 'dashboard';
             } else {
-              // Firebase Cloud Transaction Mode
               try {
                 appLoading.value = true;
                 const consolidations = consolidatedCartRequiredIngredients.value;
                 const batch = db.value.batch();
 
-                // Add sales document
                 const salesRef = db.value.collection('ventas').doc(currentId);
                 batch.set(salesRef, salesDoc);
 
-                // Subtract each material
                 Object.keys(consolidations).forEach(insId => {
                   const itemRef = db.value.collection('insumos').doc(insId);
-                  // We decrease atomically
                   batch.update(itemRef, {
                     stock_actual: firebase.firestore.FieldValue.increment(-consolidations[insId])
                   });
@@ -1621,49 +1953,6 @@
                 currentTab.value = 'dashboard';
               } catch (err) {
                 alert("Error procesando transacción en Cloud: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-          // PROCESAR COTIZACIÓN (NO DESCUENTA INVENTARIO)
-          async function processCotizacion() {
-            if (cart.value.length === 0) return;
-
-            // Generamos un ID que empiece por COT (Cotización) en lugar de TX (Transacción)
-            const currentId = 'COT-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
-            
-            const recProducts = cart.value.map(item => {
-              const baseValue = productos.value.find(p => p.id === item.productoId);
-              return {
-                id: item.productoId,
-                nombre: baseValue.nombre,
-                precio_venta: baseValue.precio_venta,
-                cantidad: item.cantidad
-              };
-            });
-
-            const quoteDoc = {
-              id: currentId,
-              fecha: new Date().toISOString(),
-              productos: recProducts,
-              total_cotizado: cartPriceTotal.value,
-              total_costo_estimado: cartCostTotal.value
-            };
-
-            if (isDemoMode.value) {
-              alert(`Cotización simulada guardada: ${currentId}`);
-              cart.value = [];
-            } else {
-              try {
-                appLoading.value = true;
-                // Guardamos en una colección nueva llamada 'cotizaciones'
-                await db.value.collection('cotizaciones').doc(currentId).set(quoteDoc);
-                cart.value = [];
-                alert(`¡Cotización registrada exitosamente! Código: ${currentId}. (Tu inventario sigue intacto).`);
-              } catch (err) {
-                alert("Error guardando cotización: " + err.message);
               } finally {
                 appLoading.value = false;
               }
@@ -1711,15 +2000,16 @@
               insumos.value = JSON.parse(JSON.stringify(demoInsumos));
               productos.value = JSON.parse(JSON.stringify(demoProductos));
               ventas.value = JSON.parse(JSON.stringify(demoVentas));
+              cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
               persistLocalData();
               alert("Base de datos local reestablecida.");
             } else {
-              // For cloud Firebase, write files
               try {
                 appLoading.value = true;
                 demoInsumos.forEach(item => db.value.collection('insumos').doc(item.id).set(item));
                 demoProductos.forEach(item => db.value.collection('productos').doc(item.id).set(item));
                 demoVentas.forEach(item => db.value.collection('ventas').doc(item.id).set(item));
+                demoCotizaciones.forEach(item => db.value.collection('cotizaciones').doc(item.id).set(item));
                 alert("Colecciones de Firestore restablecidas.");
               } catch (err) {
                 alert("Error escribiendo en la nube durante el restablecimiento: " + err.message);
@@ -1732,19 +2022,12 @@
           // DYNAMIC RESPONSIVE CHART GRAPHICS SVG PATH CALCULATORS
           const chartPointsData = computed(() => {
             if (ventas.value.length === 0) return [];
-
-            // Group sales revenue and profit by day/index to represent points
             const sorted = [...ventas.value].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-            
-            // Limit to max 12 historic segments for aesthetic sizing
             const segments = sorted.slice(-10);
-            
-            // Map max sale value for scale boundaries
             const maxSale = Math.max(...segments.map(s => s.total_venta || 1), 10);
             
             return segments.map((item, index) => {
               const xVal = (index / Math.max(1, segments.length - 1)) * 500;
-              // Translate coordinates (y points down in SVG, so 220 is bottom margin, 40 is top)
               const yRevenue = 220 - (((item.total_venta || 0) / maxSale) * 180);
               const yProfit = 220 - (((item.total_ganancia || (item.total_venta - (item.total_costo || 0))) / maxSale) * 180);
               return { x: xVal, yRev: yRevenue, yProf: yProfit };
@@ -1811,15 +2094,19 @@
             insumos,
             productos,
             ventas,
+            cotizaciones,
             
             // Query variables
             insumoSearchQuery,
             posSearchQuery,
+            empresaConfig,
+            posCliente,
             
             // Modals controls
             insumoModal,
             productoModal,
             firebaseSetupModal,
+            pdfPreviewModal,
             
             // Dynamic totals computed functions
             metrics,
@@ -1856,6 +2143,10 @@
             isStockDeficit,
             processSalesCheckout,
             processCotizacion,
+            deleteCotizacion,
+            openPdfPreview,
+            downloadPdf,
+            saveEmpresaConfig,
 
             // Core database actions
             signInWithGoogle,
