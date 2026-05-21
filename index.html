@@ -623,6 +623,11 @@
                       </div>
                     </div>
 
+                    <button @click="processCotizacion" :disabled="cart.length === 0" class="w-full mb-3 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm flex items-center justify-center gap-2 transition hover:bg-slate-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed text-sm">
+                      <i class="fas fa-file-invoice"></i>
+                      Guardar Cotización (No descuenta stock)
+                    </button>
+
                     <!-- Register Trigger -->
                     <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-sm">
                       <i class="fas fa-cash-register"></i>
@@ -1375,7 +1380,8 @@
               const provider = new firebase.auth.GoogleAuthProvider();
               await auth.value.signInWithPopup(provider);
             } catch (err) {
-              alert("Error de autenticación con Google: " + err.message);
+              // Silenciamos la alerta molestosa cambiando 'alert' por 'console.warn'
+              console.warn("Aviso de Firebase Auth (Ignorable si inició sesión): " + err.message);
               appLoading.value = false;
             }
           }
@@ -1621,6 +1627,49 @@
             }
           }
 
+          // PROCESAR COTIZACIÓN (NO DESCUENTA INVENTARIO)
+          async function processCotizacion() {
+            if (cart.value.length === 0) return;
+
+            // Generamos un ID que empiece por COT (Cotización) en lugar de TX (Transacción)
+            const currentId = 'COT-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+            
+            const recProducts = cart.value.map(item => {
+              const baseValue = productos.value.find(p => p.id === item.productoId);
+              return {
+                id: item.productoId,
+                nombre: baseValue.nombre,
+                precio_venta: baseValue.precio_venta,
+                cantidad: item.cantidad
+              };
+            });
+
+            const quoteDoc = {
+              id: currentId,
+              fecha: new Date().toISOString(),
+              productos: recProducts,
+              total_cotizado: cartPriceTotal.value,
+              total_costo_estimado: cartCostTotal.value
+            };
+
+            if (isDemoMode.value) {
+              alert(`Cotización simulada guardada: ${currentId}`);
+              cart.value = [];
+            } else {
+              try {
+                appLoading.value = true;
+                // Guardamos en una colección nueva llamada 'cotizaciones'
+                await db.value.collection('cotizaciones').doc(currentId).set(quoteDoc);
+                cart.value = [];
+                alert(`¡Cotización registrada exitosamente! Código: ${currentId}. (Tu inventario sigue intacto).`);
+              } catch (err) {
+                alert("Error guardando cotización: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
           // FIREBASE CONFIGURATION STORAGE SETTINGS
           function openFirebaseSetup() {
             firebaseSetupModal.open = true;
@@ -1806,6 +1855,7 @@
             stockDeficitReport,
             isStockDeficit,
             processSalesCheckout,
+            processCotizacion,
 
             // Core database actions
             signInWithGoogle,
