@@ -1,0 +1,6 @@
+{
+  "name": "Gestor de Manufactura y Almacén",
+  "description": "SPA con Vue 3, Tailwind y Firebase para gestionar inventario de materias primas, costos operativos de recetas y punto de venta automatizado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

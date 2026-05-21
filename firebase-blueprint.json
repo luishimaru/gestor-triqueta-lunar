@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "Insumo": {
+      "title": "Materia Prima / Insumo",
+      "description": "Artículos de materia prima necesarios para la producción.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID exclusivo del insumo" },
+        "nombre": { "type": "string", "description": "Nombre de la materia prima, ej. PLA Negro" },
+        "unidad_medida": { "type": "string", "description": "Unidad de medida (gramos, cm2, unidad)" },
+        "costo_por_unidad": { "type": "number", "description": "Costo financiero por unidad de medida" },
+        "stock_actual": { "type": "number", "description": "Cantidad física actual en almacén" },
+        "stock_minimo": { "type": "number", "description": "Mínimo stock antes de disparar alerta" }
+      },
+      "required": ["id", "nombre", "unidad_medida", "costo_por_unidad", "stock_actual"]
+    },
+    "Producto": {
+      "title": "Producto Catalogo",
+      "description": "Producto terminado con su receta de fabricación.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID del producto" },
+        "nombre": { "type": "string", "description": "Nombre del producto terminado" },
+        "precio_venta": { "type": "number", "description": "Precio de cara al cliente" },
+        "costo_operativo": { "type": "number", "description": "Costo fijo adicional de mano de obra/maquinaria por ciclo" },
+        "receta": {
+          "type": "array",
+          "description": "Arreglo de insumos requeridos para producir este artículo"
+        }
+      },
+      "required": ["id", "nombre", "precio_venta", "costo_operativo", "receta"]
+    },
+    "Venta": {
+      "title": "Registro de Venta",
+      "description": "Transacciones procesadas en el punto de venta.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "ID de transacción" },
+        "fecha": { "type": "string", "format": "date-time", "description": "Identificador temporal de la venta" },
+        "productos": { "type": "array", "description": "Lista de productos incluidos en el carrito" },
+        "total_venta": { "type": "number", "description": "Monto total facturado" },
+        "total_costo": { "type": "number", "description": "Costo total de producción calculado" },
+        "total_ganancia": { "type": "number", "description": "Monto neto restante" }
+      },
+      "required": ["id", "fecha", "productos", "total_venta", "total_costo", "total_ganancia"]
+    }
+  },
+  "firestore": {
+    "/insumos/{insumoId}": {
+      "schema": "Insumo",
+      "description": "Colección de insumos o materias primas disponibles."
+    },
+    "/productos/{productoId}": {
+      "schema": "Producto",
+      "description": "Colección de catálogo con costos operativos y sus recetas asociadas."
+    },
+    "/ventas/{ventaId}": {
+      "schema": "Venta",
+      "description": "Colección de ventas realizadas para análisis de rentabilidad."
+    }
+  }
+}

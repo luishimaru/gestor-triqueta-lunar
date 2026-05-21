@@ -1,0 +1,1833 @@
+<!doctype html>
+<html lang="es" class="h-full bg-slate-50">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FabriQ - Gestor de Manufactura</title>
+    <!-- Vue 3 CDN (Composition API Global) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            }
+          }
+        }
+      }
+    </script>
+    <!-- Google Fonts for Typography -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase V9 Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  </head>
+  <body class="h-full font-sans text-slate-800 antialiased overflow-hidden">
+    <div id="app" class="h-full flex flex-col md:flex-row relative">
+      
+      <!-- LOADING LAYER -->
+      <div v-if="appLoading" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center transition-all duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center max-w-sm w-full mx-4">
+          <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p class="font-medium text-slate-800 text-lg">Iniciando sistema...</p>
+          <p class="text-slate-500 text-sm mt-1 text-center">Cargando base de datos y configuraciones</p>
+        </div>
+      </div>
+
+      <!-- APP LOGIN VIEW -->
+      <div v-if="!user && !isGuestMode" class="w-full min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl flex flex-col max-w-md w-full p-8 relative overflow-hidden">
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl"></div>
+          <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl"></div>
+          
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xl shadow-lg shadow-indigo-600/30">
+              <i class="fas fa-cubes-stacked"></i>
+            </div>
+            <span class="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">FabriQ</span>
+          </div>
+
+          <h2 class="text-2xl font-bold text-slate-800 tracking-tight leading-tight mb-2">Control de Manufactura</h2>
+          <p class="text-slate-500 mb-8 text-sm">Gestiona productos personalizados, recetas de materias primas y ventas en tiempo real.</p>
+          
+          <!-- Google Auth button -->
+          <button @click="signInWithGoogle" class="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-medium rounded-xl flex items-center justify-center gap-3 shadow-md hover:shadow-lg transition-all duration-150 mb-4 cursor-pointer">
+            <i class="fab fa-google text-lg text-white"></i>
+            Ingresar con Google Auth
+          </button>
+          
+          <!-- Offline / Demo button -->
+          <button @click="enterGuestMode" class="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer">
+            <i class="fas fa-laptop-code text-sm"></i>
+            Probar en Modo Offline de Demostración
+          </button>
+
+          <footer class="mt-8 text-center text-xs text-slate-400">
+            Cuentas sincronizadas mediante conexión Firebase protegida.
+          </footer>
+        </div>
+      </div>
+
+      <!-- MAIN LAYOUT (SIDEBAR + WORKSPACE) -->
+      <template v-else>
+        <!-- MOBILE HEADER -->
+        <header class="md:hidden bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 py-3 text-white">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center">
+              <i class="fas fa-cubes-stacked text-sm"></i>
+            </div>
+            <span class="font-bold tracking-tight uppercase text-sm">FabriQ</span>
+            <span v-if="isDemoMode" class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold tracking-wide ml-1">DEMO</span>
+          </div>
+          <button @click="mobileMenuOpen = !mobileMenuOpen" class="w-8 h-8 flex items-center justify-center bg-slate-800 rounded">
+            <i class="fas" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+          </button>
+        </header>
+
+        <!-- SIDEBAR LEFT -->
+        <aside class="fixed md:relative inset-y-0 left-0 w-64 bg-slate-900 text-white md:flex flex-col border-r border-slate-800 z-30 transition-transform duration-300 -translate-x-full md:translate-x-0" :class="{'translate-x-0': mobileMenuOpen}">
+          <div class="p-6 hidden md:flex items-center justify-between border-b border-slate-800">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center text-white text-base shadow-md shadow-indigo-500/20">
+                <i class="fas fa-cubes-stacked"></i>
+              </div>
+              <span class="text-lg font-bold tracking-tight uppercase text-white">FabriQ</span>
+            </div>
+            <span v-if="isDemoMode" class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-wider scale-90">Demo</span>
+          </div>
+
+          <!-- NAVIGATION ITEMS -->
+          <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id; mobileMenuOpen = false" class="w-full text-left py-2 px-3 rounded-md flex items-center justify-between transition-all duration-150 cursor-pointer text-sm font-medium" :class="currentTab === tab.id ? 'bg-indigo-600 text-white shadow-sm' : 'hover:bg-slate-800 text-slate-400 hover:text-white'">
+              <div class="flex items-center gap-3">
+                <i class="fas w-5" :class="tab.icon"></i>
+                <span>{{ tab.name }}</span>
+              </div>
+              <span v-if="tab.id === 'insumos' && lowStockCount > 0" class="bg-red-500/20 text-red-200 font-bold text-xs px-2 py-0.5 rounded-full border border-red-500/20">{{ lowStockCount }}</span>
+            </button>
+          </nav>
+
+          <!-- BOTTOM SESSION BAR -->
+          <div class="p-4 border-t border-slate-800">
+            <div class="flex items-center gap-3 p-2 bg-slate-800/50 rounded-lg">
+              <div class="w-8 h-8 rounded-full bg-slate-705 flex items-center justify-center text-xs overflow-hidden font-bold">
+                <img v-if="user?.photoURL" :src="user.photoURL" class="w-full h-full object-cover" />
+                <span v-else class="text-white">{{ userInitials }}</span>
+              </div>
+              <div class="overflow-hidden">
+                <p class="text-xs font-semibold truncate text-white leading-tight">{{ user?.displayName || 'Fabricante Invitado' }}</p>
+                <p class="text-[10px] text-slate-500 truncate mt-0.5">{{ user?.email || 'Datos locales' }}</p>
+              </div>
+            </div>
+            <button @click="logout" class="w-full mt-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded text-xs font-medium transition cursor-pointer border border-slate-700 flex items-center justify-center gap-2">
+              <i class="fas fa-sign-out-alt"></i>
+              Cerrar Sesión
+            </button>
+          </div>
+        </aside>
+
+        <!-- MAIN AREA WITH TAB INTERFACES -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50">
+          
+          <!-- DESKTOP TOP BAR HEADER -->
+          <header class="h-16 bg-white border-b border-slate-200 hidden md:flex items-center justify-between px-8 shrink-0">
+            <h1 class="text-lg font-bold text-slate-900 uppercase tracking-tight">Panel General de Producción</h1>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-200 font-mono">
+                <span class="inline-block w-2.5 h-2.5 rounded-full" :class="isDemoMode ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                {{ isDemoMode ? 'Modo de Demostración' : 'Firebase: Conectado' }}
+              </div>
+              <button @click="currentTab = 'pos'" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm font-semibold transition-colors shadow-sm cursor-pointer border border-indigo-500">Nueva Venta (POS)</button>
+            </div>
+          </header>
+
+          <div class="flex-1 overflow-y-auto px-4 md:px-8 py-6 h-full">
+
+            <!-- TAB 1: DASHBOARD -->
+            <section v-if="currentTab === 'dashboard'" class="space-y-6">
+              <div class="md:hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Panel de Control</h1>
+                  <p class="text-slate-500 text-sm">Resumen de finanzas y estado de inventario para tus productos e insumos.</p>
+                </div>
+              </div>
+
+              <!-- FINANCIAL CARDS -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Ventas Registradas</span>
+                    <span class="text-2xl font-bold text-slate-900 block mt-1 font-mono">${{ metrics.totalSales.toLocaleString() }}</span>
+                    <span class="text-xs text-slate-400 mt-1 block">Facturado acumulado</span>
+                  </div>
+                  <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 border border-slate-100 text-lg">
+                    <i class="fas fa-dollar-sign"></i>
+                  </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Costo de Producción</span>
+                    <span class="text-2xl font-bold text-slate-900 block mt-1 font-mono">${{ metrics.totalCost.toLocaleString() }}</span>
+                    <span class="text-xs text-slate-400 mt-1 block">Insumos + Costos Op</span>
+                  </div>
+                  <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 border border-slate-100 text-lg">
+                    <i class="fas fa-receipt"></i>
+                  </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Ganancia Neta</span>
+                    <span class="text-2xl font-bold block mt-1 font-mono text-emerald-600" :class="{'text-amber-600': metrics.totalProfit < 0}">${{ metrics.totalProfit.toLocaleString() }}</span>
+                    <span class="text-xs text-slate-400 mt-1 block">Retorno financiero</span>
+                  </div>
+                  <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 text-lg">
+                    <i class="fas fa-hand-holding-dollar"></i>
+                  </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div>
+                    <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Margen de Ganancia</span>
+                    <span class="text-2xl font-bold text-indigo-600 block mt-1 font-mono">{{ metrics.profitMargin.toFixed(1) }}%</span>
+                    <span class="text-xs text-indigo-400 mt-1 block">Rendimiento promedio</span>
+                  </div>
+                  <div class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 text-lg">
+                    <i class="fas fa-percentage"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DYNAMIC CHART + STATUS LIST -->
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- CHART CONTAINER -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                  <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase mb-4">Evolución de Finanzas</h3>
+                  
+                  <div v-if="ventas.length === 0" class="h-64 flex flex-col items-center justify-center text-slate-400">
+                    <i class="fas fa-chart-line text-3xl mb-2 text-slate-300"></i>
+                    <span>Aún no hay transacciones para graficar</span>
+                  </div>
+                  <div v-else class="relative">
+                    <!-- High visual fidelity SVG Chart -->
+                    <svg class="w-full h-64" viewBox="0 0 500 240" preserveAspectRatio="none">
+                      <!-- Grid lines -->
+                      <line x1="0" y1="40" x2="500" y2="40" stroke="#f1f5f9" stroke-width="1" />
+                      <line x1="0" y1="100" x2="500" y2="100" stroke="#f1f5f9" stroke-width="1" />
+                      <line x1="0" y1="160" x2="500" y2="160" stroke="#f1f5f9" stroke-width="1" />
+                      <line x1="0" y1="220" x2="500" y2="220" stroke="#e2e8f0" stroke-width="1.5" />
+
+                      <!-- Area under revenue -->
+                      <path :d="revenueAreaPath" fill="url(#revenueGrad)" opacity="0.15"></path>
+                      
+                      <!-- Area under profit -->
+                      <path :d="profitAreaPath" fill="url(#profitGrad)" opacity="0.15"></path>
+
+                      <!-- Path Lines -->
+                      <path :d="revenueLinePath" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path :d="profitLinePath" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+                      
+                      <!-- Define gradients -->
+                      <defs>
+                        <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="#6366f1" />
+                          <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+                        </linearGradient>
+                        <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="#10b981" />
+                          <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    
+                    <!-- Legend layout -->
+                    <div class="flex items-center gap-6 mt-4 justify-center text-xs">
+                      <div class="flex items-center gap-1.5 font-medium">
+                        <span class="w-3 h-3 bg-indigo-500 rounded-full"></span>
+                        <span class="text-slate-600">Línea de Ventas ($)</span>
+                      </div>
+                      <div class="flex items-center gap-1.5 font-medium">
+                        <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                        <span class="text-slate-600">Línea de Ganancias ($)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ALERTS PANEL / LOW STOCK -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Stock Crítico</h3>
+                    <span class="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-full">
+                      {{ lowStockCount }} Alertas
+                    </span>
+                  </div>
+
+                  <!-- Alert feed -->
+                  <div class="flex-1 overflow-y-auto space-y-3 pr-1 max-h-64 lg:max-h-none">
+                    <div v-if="lowStockInsumos.length === 0" class="flex flex-col items-center justify-center py-10 h-full text-slate-400 text-center">
+                      <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 mb-3 text-lg">
+                        <i class="fas fa-circle-check"></i>
+                      </div>
+                      <p class="font-medium text-slate-700 text-sm">¡Inventario Saludable!</p>
+                      <p class="text-xs text-slate-400 mt-1">Todas las materias primas cuentan con un stock seguro por encima del mínimo.</p>
+                    </div>
+                    <div v-for="insumo in lowStockInsumos" :key="insumo.id" class="flex justify-between items-center py-2.5 border-b border-slate-100 last:border-0">
+                      <div class="text-xs">
+                        <p class="font-semibold text-slate-800">{{ insumo.nombre }}</p>
+                        <p class="text-slate-400 mt-0.5">{{ insumo.stock_actual }} restantes (Mín. {{ insumo.stock_minimo || 10 }})</p>
+                      </div>
+                      <div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-red-500" :style="{ width: Math.min(100, (insumo.stock_actual / (insumo.stock_minimo || 10)) * 100) + '%' }"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RECENT SALES LOG -->
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/10">
+                  <h3 class="text-sm font-bold text-slate-900">Ventas Recientes</h3>
+                  <button @click="currentTab = 'pos'" class="text-xs text-indigo-600 font-semibold hover:underline">Nueva Venta</button>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
+                      <tr>
+                        <th class="px-6 py-3">Código de Venta</th>
+                        <th class="px-6 py-3">Fecha / Hora</th>
+                        <th class="px-6 py-3">Productos Incluidos</th>
+                        <th class="px-6 py-3 text-right">Costo Fab.</th>
+                        <th class="px-6 py-3 text-right">Monto Venta</th>
+                        <th class="px-6 py-3 text-right">Ganancia Neta</th>
+                      </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-slate-100">
+                      <tr v-if="ventas.length === 0">
+                        <td colspan="6" class="py-8 text-center text-slate-400">
+                          No se han procesado operaciones de venta aún.
+                        </td>
+                      </tr>
+                      <tr v-for="v in sortedVentas.slice(0, 5)" :key="v.id" class="hover:bg-slate-50/80 transition duration-150">
+                        <td class="py-3 px-6 font-mono font-bold text-slate-900 text-xs">{{ v.id }}</td>
+                        <td class="py-3 px-6 text-slate-400 text-xs">{{ formatDate(v.fecha) }}</td>
+                        <td class="py-3 px-6">
+                          <span v-for="(p, idx) in v.productos" :key="idx" class="inline-block bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded mr-1">
+                            {{ p.cantidad }}x {{ p.nombre }}
+                          </span>
+                        </td>
+                        <td class="py-3 px-6 text-right font-mono text-xs text-slate-400">${{ (v.total_costo || 0).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-semibold">${{ (v.total_venta || 0).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right">
+                          <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-emerald-600">
+                            +${{ (v.total_ganancia || (v.total_venta - (v.total_costo || 0))).toFixed(2) }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- TAB 2: INSUMOS -->
+            <section v-if="currentTab === 'insumos'" class="space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Materias Primas (Insumos)</h1>
+                  <p class="text-slate-500 text-sm">Módulo de control de existencias de insumos consumibles para tus diseños.</p>
+                </div>
+                <button @click="openInsumoModal()" class="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition duration-150 cursor-pointer text-sm">
+                  <i class="fas fa-plus"></i>
+                  Añadir Materia Prima
+                </button>
+              </div>
+
+              <!-- SEARCH AND FILTER PANEL -->
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                <div class="relative w-full max-w-sm">
+                  <i class="fas fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                  <input v-model="insumoSearchQuery" type="text" placeholder="Buscar materia prima (ej. PLA)..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+                </div>
+              </div>
+
+              <!-- INSUMOS TABLE -->
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                        <th class="py-3 px-6">Detalle del Insumo / Clave</th>
+                        <th class="py-3 px-6 text-center">Unidad de Medida</th>
+                        <th class="py-3 px-6 text-right">Costo Unitario</th>
+                        <th class="py-3 px-6 text-center">Stock Disponible</th>
+                        <th class="py-3 px-6 text-center">Mínimo Crítico</th>
+                        <th class="py-3 px-6 text-end">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                      <tr v-if="filteredInsumos.length === 0">
+                        <td colspan="6" class="py-12 text-center text-slate-400 bg-slate-50/10">
+                          <i class="fas fa-box-open text-3xl mb-2 block text-slate-300"></i>
+                          No hay insumos registrados que coincidan con la búsqueda.
+                        </td>
+                      </tr>
+                      <tr v-for="insumo in filteredInsumos" :key="insumo.id" class="hover:bg-slate-50/40 transition duration-150" :class="{'bg-red-50/20': insumo.stock_actual <= insumo.stock_minimo}">
+                        <td class="py-4.5 px-6">
+                          <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 font-bold" :class="{'bg-red-100/60 text-red-600': insumo.stock_actual <= insumo.stock_minimo}">
+                              <i class="fas fa-box text-sm"></i>
+                            </div>
+                            <div>
+                              <span class="font-semibold text-slate-800 block">{{ insumo.nombre }}</span>
+                              <span class="text-xs font-mono text-slate-400">ID: {{ insumo.id }}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="py-4.5 px-6 text-center font-medium">
+                          <span class="inline-block px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs lowercase font-semibold">
+                            {{ insumo.unidad_medida }}
+                          </span>
+                        </td>
+                        <td class="py-4.5 px-6 text-right font-mono font-medium text-slate-700">
+                          ${{ (insumo.costo_por_unidad || 0).toFixed(4) }}
+                        </td>
+                        <td class="py-4.5 px-6 text-center">
+                          <span class="font-mono font-bold text-sm" :class="insumo.stock_actual <= insumo.stock_minimo ? 'text-red-600' : 'text-slate-800'">
+                            {{ insumo.stock_actual }}
+                          </span>
+                        </td>
+                        <td class="py-4.5 px-6 text-center font-mono text-slate-400">
+                          {{ insumo.stock_minimo || 10 }}
+                        </td>
+                        <td class="py-4.5 px-6 text-end">
+                          <div class="flex items-center justify-end gap-2">
+                            <button @click="openInsumoModal(insumo)" class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center border border-indigo-100 transition cursor-pointer" title="Editar">
+                              <i class="fas fa-pencil-alt text-xs"></i>
+                            </button>
+                            <button @click="confirmDeleteInsumo(insumo)" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center border border-red-100 transition cursor-pointer" title="Eliminar">
+                              <i class="fas fa-trash-can text-xs"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- TAB 3: CATALOGO & RECETAS -->
+            <section v-if="currentTab === 'catalogo'" class="space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Catálogo de Productos terminados (Recetas)</h1>
+                  <p class="text-slate-500 text-sm">Gestiona el precio de venta y las cantidades de materias primas que consume cada producto.</p>
+                </div>
+                <button @click="openProductoModal()" class="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition duration-150 cursor-pointer text-sm">
+                  <i class="fas fa-calculator"></i>
+                  Diseñar Producto / Receta
+                </button>
+              </div>
+
+              <!-- RECIPES GRID DISPLAY -->
+              <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div v-if="productos.length === 0" class="col-span-full bg-white py-14 rounded-xl border border-slate-200 shadow-sm text-center text-slate-400">
+                  <i class="fas fa-vial text-4xl mb-3 text-slate-300 block animate-pulse"></i>
+                  <p class="font-bold text-slate-700 text-base">Sin Productos Formulados</p>
+                  <p class="text-sm text-slate-500 mt-1">Crea tu primer producto personalizado y asigna materias primas consumibles.</p>
+                </div>
+                
+                <div v-for="prod in productos" :key="prod.id" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition duration-200">
+                  <!-- Header specifications -->
+                  <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div>
+                      <h3 class="text-base font-bold text-slate-800">{{ prod.nombre }}</h3>
+                      <p class="text-[11px] font-mono text-slate-400 mt-0.5">Clave: {{ prod.id }}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <button @click="openProductoModal(prod)" class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center border border-indigo-100 cursor-pointer transition">
+                        <i class="fas fa-pencil-alt text-xs"></i>
+                      </button>
+                      <button @click="confirmDeleteProducto(prod)" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center border border-red-100 cursor-pointer transition">
+                        <i class="fas fa-trash-can text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Recipe Breakdown -->
+                  <div class="p-5 flex-1 flex flex-col justify-between gap-4">
+                    <div>
+                      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Ingredientes / Materias Primas</span>
+                      <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                        <div v-for="(recetaItem, idx) in prod.receta" :key="idx" class="flex items-center justify-between text-xs py-1.5 border-b border-dashed border-slate-100">
+                          <span class="font-medium text-slate-700 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                            {{ getInsumoName(recetaItem.insumoId) }}
+                          </span>
+                          <span class="font-mono text-slate-500 font-semibold bg-slate-50 px-2 py-0.5 rounded">
+                            {{ recetaItem.cantidad }} {{ getInsumoMedida(recetaItem.insumoId) }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Cost / Margin indicators -->
+                    <div class="bg-slate-50 rounded-xl p-3.5 flex flex-wrap gap-4 justify-between border border-slate-100">
+                      <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Costo Operativo</span>
+                        <span class="text-sm font-semibold text-slate-700 font-mono">${{ (prod.costo_operativo || 0).toFixed(2) }}</span>
+                      </div>
+                      <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Costo Insumos</span>
+                        <span class="text-sm font-semibold text-slate-700 font-mono">${{ calculateRecipeMaterialsCost(prod).toFixed(2) }}</span>
+                      </div>
+                      <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Costo Total</span>
+                        <span class="text-sm font-bold text-red-600 font-mono">${{ calculateTotalProductCost(prod).toFixed(2) }}</span>
+                      </div>
+                      <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Precio Venta</span>
+                        <span class="text-sm font-bold text-slate-900 font-mono">${{ (prod.precio_venta || 0).toFixed(2) }}</span>
+                      </div>
+                      <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Ganancia / Margen</span>
+                        <span class="text-sm font-extrabold font-mono text-emerald-600 flex items-center gap-1.5">
+                          ${{ (prod.precio_venta - calculateTotalProductCost(prod)).toFixed(2) }}
+                          <span class="text-[10px] bg-emerald-100 text-emerald-700 px-1 rounded">
+                            {{ calculateProfitPercentage(prod).toFixed(0) }}%
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- TAB 4: PUNTO DE VENTA (POS) -->
+            <section v-if="currentTab === 'pos'" class="h-full flex flex-col space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Punto de Venta de Fabricación (POS)</h1>
+                  <p class="text-slate-500 text-sm">Registra ventas del catálogo y descuenta automáticamente los insumos consumidos del stock real.</p>
+                </div>
+              </div>
+
+              <!-- TWO COLUMN POS: LEFT CATALOG / RIGHT CART -->
+              <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 overflow-hidden min-h-[500px]">
+                
+                <!-- LEFT CATALOG (2/3 width) -->
+                <div class="xl:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
+                  <div class="mb-4">
+                    <div class="relative">
+                      <i class="fas fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                      <input v-model="posSearchQuery" type="text" placeholder="Buscar producto en menú..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    </div>
+                  </div>
+
+                  <div class="flex-1 overflow-y-auto space-y-3.5 pr-1 max-h-[460px]">
+                    <div v-if="productos.length === 0" class="text-center text-slate-400 py-12">
+                      <i class="fas fa-cash-register text-3xl mb-2 text-slate-300"></i>
+                      <p>Registra productos con recetas primero en el Catálogo.</p>
+                    </div>
+                    <div v-for="prod in filteredPOSProducts" :key="prod.id" class="p-4 border border-slate-100 bg-slate-50/40 rounded-xl flex items-center justify-between hover:bg-slate-50 hover:border-slate-200 transition">
+                      <div class="flex-1 min-w-0 pr-4">
+                        <h4 class="font-bold text-slate-800 text-sm truncate">{{ prod.nombre }}</h4>
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                          <span class="text-slate-600 text-sm font-mono tracking-normal font-extrabold text-indigo-600">${{ prod.precio_venta }}</span>
+                          <span class="font-mono lowercase text-slate-400">Insumos: {{ prod.receta.length }}</span>
+                        </div>
+                      </div>
+                      <button @click="addToCart(prod)" class="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer">
+                        <i class="fas fa-cart-plus"></i>
+                        Añadir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RIGHT CARTS (1/3 width) -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full justify-between">
+                  <div>
+                    <h3 class="text-sm font-semibold tracking-tight text-slate-400 uppercase mb-4 flex items-center justify-between">
+                      <span>Carrito de Venta</span>
+                      <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-0.5 rounded font-mono">{{ cart.reduce((acc, i) => acc + i.cantidad, 0) }}</span>
+                    </h3>
+
+                    <!-- Cart Content -->
+                    <div class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-1">
+                      <div v-if="cart.length === 0" class="text-center text-slate-400 py-8">
+                        <i class="fas fa-basket-shopping text-3xl mb-2 text-slate-300"></i>
+                        <p class="text-sm">El carrito está vacío</p>
+                      </div>
+                      <div v-for="item in cart" :key="item.productoId" class="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between group">
+                        <div class="flex-1 min-w-0 pr-3">
+                          <span class="text-xs font-bold font-mono text-slate-700 truncate block">{{ getProductoName(item.productoId) }}</span>
+                          <span class="text-xs text-slate-400 font-mono">${{ getProductoPrice(item.productoId).toFixed(2) }} c/u</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button @click="decrementCartItem(item.productoId)" class="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300/80 text-zinc-700 flex items-center justify-center text-xs transition cursor-pointer">
+                            <i class="fas fa-minus"></i>
+                          </button>
+                          <span class="text-xs font-bold font-mono w-4 text-center">{{ item.cantidad }}</span>
+                          <button @click="incrementCartItem(item.productoId)" class="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300/80 text-zinc-700 flex items-center justify-center text-xs transition cursor-pointer">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                          <button @click="removeFromCart(item.productoId)" class="w-6 h-6 rounded bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs transition cursor-pointer ml-1">
+                            <i class="fas fa-trash-can"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Bottom: Stock Availability Guard and Totals -->
+                  <div class="border-t border-slate-100 pt-4 space-y-4">
+                    
+                    <!-- DYNAMIC INVENTORY STOCK METRIC EVALUATOR -->
+                    <div v-if="cart.length > 0" class="p-3 rounded-xl text-xs space-y-2 border" :class="isStockDeficit ? 'bg-red-50 border-red-100 text-red-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'">
+                      <div class="font-semibold flex items-center gap-1.5">
+                        <i class="fas" :class="isStockDeficit ? 'fa-circle-exclamation text-red-500' : 'fa-circle-check text-emerald-500'"></i>
+                        {{ isStockDeficit ? 'Defecto de Insumos / Materias' : 'Suficiente Materia Prima para Manufacturar' }}
+                      </div>
+                      
+                      <!-- Deficit lines descriptive details -->
+                      <div v-if="isStockDeficit" class="space-y-1 mt-1 border-t border-red-100/50 pt-1.5 font-mono text-[11px] leading-tight max-h-24 overflow-y-auto">
+                        <div v-for="d in stockDeficitReport" :key="d.id" class="flex justify-between">
+                          <span>• {{ d.nombre }}:</span>
+                          <span>Falta <b class="font-extrabold text-red-600">{{ d.deficit.toFixed(1) }}</b> {{ d.medida }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Money Summary -->
+                    <div class="space-y-1.5 font-semibold text-xs leading-none">
+                      <div class="flex justify-between text-slate-500">
+                        <span>Costo fabric. estimado:</span>
+                        <span class="font-mono">${{ cartCostTotal.toFixed(2) }}</span>
+                      </div>
+                      <div class="flex justify-between text-slate-800 text-sm mt-1">
+                        <span>Importe total:</span>
+                        <span class="font-mono text-base font-extrabold text-indigo-600">${{ cartPriceTotal.toFixed(2) }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Register Trigger -->
+                    <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-sm">
+                      <i class="fas fa-cash-register"></i>
+                      Procesar y Descontar Almacén
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- TAB 5: CONFIGURATION -->
+            <section v-if="currentTab === 'config'" class="space-y-6">
+              <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
+                <p class="text-slate-500 text-sm">Sincroniza bases de datos o reinicializa materias primas y recetas.</p>
+              </div>
+
+              <!-- FIREBASE INTEGRATOR MODULE -->
+              <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                  <div class="w-9.5 h-9.5 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 text-lg">
+                    <i class="fas fa-gears"></i>
+                  </div>
+                  <h3 class="text-base font-bold text-slate-900">Sincronización Firebase Cloud</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Connection Status -->
+                  <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <span class="text-xs font-semibold text-slate-400 block tracking-wider uppercase">Estado de Conexión</span>
+                    <div class="flex items-center gap-2.5 mt-2">
+                      <span class="w-3.5 h-3.5 rounded-full inline-block animate-pulse" :class="isDemoMode ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                      <span class="font-bold text-slate-800 text-sm">
+                        {{ isDemoMode ? 'Modo de Simulación (Offline)' : 'Conectado a Firebase Cloud Activo' }}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2 leading-tight">
+                      En la simulación los datos se almacenan en la memoria local estática y el "localStorage" de tu navegador. Si deseas habilitar la persistencia multiusuario, vincula un proyecto de Firestore.
+                    </p>
+                  </div>
+
+                  <!-- Firebase action prompts -->
+                  <div class="bg-slate-50 p-4 rounded-xl border border-slate-150 flex flex-col justify-between">
+                    <div>
+                      <span class="text-xs font-semibold text-slate-400 block tracking-wider uppercase">Vincular Cloud Firestore</span>
+                      <p class="text-[11px] text-slate-400 mt-1 leading-tight">
+                        Para habilitar la autenticación de Google y almacenar tus insumos, introduce tu JSON de Firebase Config a continuación.
+                      </p>
+                    </div>
+                    
+                    <button @click="openFirebaseSetup" class="mt-3 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs rounded-lg transition cursor-pointer">
+                      Modificar Credenciales de Firebase Config
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SEED INITIAL DATA AND RESTORATION -->
+              <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                  <div class="w-9.5 h-9.5 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 text-lg">
+                    <i class="fas fa-triangle-exclamation"></i>
+                  </div>
+                  <h3 class="text-base font-bold text-slate-900">Mantenimiento de Datos</h3>
+                </div>
+
+                <div>
+                  <p class="text-xs text-slate-500 mb-4 pb-2">
+                    Si estás realizando pruebas en la simulación y agotaste tu stock acumulado, o deseas restaurar las recetas de productos de fábrica (PLA Negros, Impresión 3D, DTFs estampados, etc.), puedes usar este restablecimiento rápido.
+                  </p>
+                  <button @click="restoreDemoData" class="py-2.5 px-4 bg-amber-600 hover:bg-amber-750 text-white font-semibold rounded-xl text-xs transition duration-150 cursor-pointer">
+                    Restaurar Datos de Demostración Iniciales
+                  </button>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </main>
+      </template>
+
+      <!-- MODALS & DIALOGS LAYERS -->
+
+      <!-- 1. MODAL INSUMO (ADD/EDIT) -->
+      <div v-if="insumoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
+          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-800">
+              {{ insumoModal.isEditing ? 'Editar Materia Prima' : 'Nueva Materia Prima / Insumo' }}
+            </h3>
+            <button @click="insumoModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
+              <i class="fas fa-xmark text-sm"></i>
+            </button>
+          </div>
+          
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nombre Descriptivo</label>
+              <input v-model="insumoModal.data.nombre" type="text" placeholder="Ej. Rollo PLA Negro 1kg" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Unidad Medida</label>
+                <select v-model="insumoModal.data.unidad_medida" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer transition">
+                  <option value="gramos">gramos (g)</option>
+                  <option value="cm2">cm2 (área)</option>
+                  <option value="unidad">unidad (u)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Costo Unitario ($)</label>
+                <input v-model.number="insumoModal.data.costo_por_unidad" type="number" step="0.0001" placeholder="0.025" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Stock Almacén</label>
+                <input v-model.number="insumoModal.data.stock_actual" type="number" placeholder="1000" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Stock Mínimo</label>
+                <input v-model.number="insumoModal.data.stock_minimo" type="number" placeholder="200" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-end gap-3.5">
+            <button @click="insumoModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Cancelar
+            </button>
+            <button @click="saveInsumo" class="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/15 cursor-pointer transition">
+              Guardar Insumo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. MODAL PRODUCTO / RECETA DESIGNER (ADD/EDIT) -->
+      <div v-if="productoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-800">
+              {{ productoModal.isEditing ? 'Editar Producto / Receta' : 'Diseñar Nuevo Producto' }}
+            </h3>
+            <button @click="productoModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
+              <i class="fas fa-xmark text-sm"></i>
+            </button>
+          </div>
+
+          <!-- Modal Body Scrollable -->
+          <div class="p-6 overflow-y-auto space-y-4 flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="sm:col-span-2">
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nombre Comercial</label>
+                <input v-model="productoModal.data.nombre" type="text" placeholder="Ej. Dragón 3D de Articulación" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Costo Operativo ($)</label>
+                <input v-model.number="productoModal.data.costo_operativo" type="number" step="0.01" placeholder="2.00" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Precio de Venta Sugerido ($)</label>
+                <input v-model.number="productoModal.data.precio_venta" type="number" step="0.01" placeholder="15.00" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+              <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-150 flex items-center justify-between text-xs font-semibold leading-none self-end">
+                <div>
+                  <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Margen de Ganancia</span>
+                  <span class="text-sm font-extrabold text-indigo-600 font-mono inline-block mt-1">
+                    ${{ (productoModal.data.precio_venta - modalCalculatedTotalCost).toFixed(2) }} 
+                    ({{ modalCalculatedProfitPercent.toFixed(0) }}%)
+                  </span>
+                </div>
+                <div>
+                  <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Costo Total</span>
+                  <span class="text-sm font-extrabold text-slate-800 font-mono inline-block mt-1">${{ modalCalculatedTotalCost.toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- RECIPE CREATOR SUITE -->
+            <div class="border-t border-slate-150 pt-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Composición / Consumo de Insumos</span>
+                <button @click="addInsumoToRecipe" class="py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-100 transition">
+                  <i class="fas fa-plus"></i>
+                  Añadir Línea de Insumo
+                </button>
+              </div>
+
+              <!-- List ingredients in recipe -->
+              <div class="space-y-3">
+                <div v-if="productoModal.data.receta.length === 0" class="p-6 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs">
+                  Aún no has agregado materias primas a esta formulación. El producto no incurrirá en consumos.
+                </div>
+                
+                <div v-for="(rec, idx) in productoModal.data.receta" :key="idx" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-50 border border-slate-100 p-3 rounded-2xl relative">
+                  <!-- Select raw ingredient dropdown -->
+                  <div class="flex-1">
+                    <label class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Materia Prima</label>
+                    <select v-model="rec.insumoId" class="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded-lg text-xs cursor-pointer">
+                      <option value="" disabled>Selecciona insumo...</option>
+                      <option v-for="ins in insumos" :key="ins.id" :value="ins.id">
+                        {{ ins.nombre }} (${{ ins.costo_por_unidad }}/{{ ins.unidad_medida }})
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Enter required quantity -->
+                  <div class="w-32">
+                    <label class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Cantidad</label>
+                    <div class="relative flex items-center">
+                      <input v-model.number="rec.cantidad" type="number" class="w-full pl-2.5 pr-8 py-1.5 border border-slate-200 bg-white rounded-lg text-xs font-mono">
+                      <span class="absolute right-2 px-1 py-0.5 bg-slate-100 text-[10px] text-slate-400 font-semibold rounded pointer-events-none">
+                        {{ getInsumoMedida(rec.insumoId) || '-' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="w-20 text-right pr-2">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Subcosto</span>
+                    <span class="text-xs font-mono font-bold text-slate-700">
+                      ${{ (rec.cantidad * getInsumoCostoUnit(rec.insumoId)).toFixed(2) }}
+                    </span>
+                  </div>
+
+                  <button @click="removeInsumoFromRecipe(idx)" class="w-8 h-8 rounded bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs cursor-pointer self-end sm:self-auto">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-end gap-3.5">
+            <button @click="productoModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Cancelar
+            </button>
+            <button @click="saveProducto" class="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/15 cursor-pointer transition">
+              Guardar Receta / Producto
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. CONFIGURATION MODAL FIREBASE API KEYS -->
+      <div v-if="firebaseSetupModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-800">Credenciales De Acceso Firebase</h3>
+            <button @click="firebaseSetupModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
+              <i class="fas fa-xmark text-sm"></i>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <p class="text-xs text-slate-500 leading-tight">
+              Ingresa el objeto de configuración JSON provisto en tu consola Firebase para establecer la base de datos cloud compartida e iniciar la autenticación de Google Auth.
+            </p>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Firebase SDK Configuration JSON</label>
+              <textarea v-model="firebaseSetupModal.configString" rows="8" placeholder='{&#10;  "apiKey": "AIzaSy...",&#10;  "authDomain": "...",&#10;  "projectId": "...",&#10;  "storageBucket": "...",&#10;  "messagingSenderId": "...",&#10;  "appId": "..."&#10;}' class="w-full p-4 border border-slate-200 bg-slate-50/50 rounded-2xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white resize-none transition duration-150"></textarea>
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-between gap-3 px-6">
+            <button @click="disableFirebaseConfig" class="py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Desactivar Firebase (Modo Local)
+            </button>
+            <div class="flex items-center gap-3">
+              <button @click="firebaseSetupModal.open = false" class="py-2.5 px-3 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+                Salir
+              </button>
+              <button @click="saveFirebaseConfig" class="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-600/15 cursor-pointer transition">
+                Sincronizar Cloud
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MAIN APP CODE IN VUE 3 COMPOSITION API -->
+    <script>
+      const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+
+      createApp({
+        setup() {
+          // Tabs structure
+          const tabs = [
+            { id: 'dashboard', name: 'Dashboard', icon: 'fa-chart-pie' },
+            { id: 'insumos', name: 'En almacén (Insumos)', icon: 'fa-box-open' },
+            { id: 'catalogo', name: 'Catálogo de Diseños (Recetas)', icon: 'fa-receipt' },
+            { id: 'pos', name: 'Punto de Venta POS', icon: 'fa-shopping-cart' },
+            { id: 'config', name: 'Ajustes', icon: 'fa-gears' },
+          ];
+
+          // UI state indicators
+          const currentTab = ref('dashboard');
+          const mobileMenuOpen = ref(false);
+          const appLoading = ref(true);
+          const isGuestMode = ref(false);
+          const db = ref(null);
+          const auth = ref(null);
+          const isDemoMode = ref(true);
+          const user = ref(null);
+
+          // Real-time synchronization models
+          const insumos = ref([]);
+          const productos = ref([]);
+          const ventas = ref([]);
+
+          // Form Search Queries
+          const insumoSearchQuery = ref('');
+          const posSearchQuery = ref('');
+
+          // Core models for editing modals
+          const insumoModal = reactive({
+            open: false,
+            isEditing: false,
+            data: { id: '', nombre: '', unidad_medida: 'gramos', costo_por_unidad: 0.025, stock_actual: 1000, stock_minimo: 200 }
+          });
+
+          const productoModal = reactive({
+            open: false,
+            isEditing: false,
+            data: { id: '', nombre: '', precio_venta: 15.00, costo_operativo: 2.00, receta: [] }
+          });
+
+          const firebaseSetupModal = reactive({
+            open: false,
+            configString: ''
+          });
+
+          // Point of Sale Cart Status Array
+          const cart = ref([]);
+
+          // DYNAMIC DEMO STATIC PREMADE DATA FOR INMEDIATE PLAYGROUND
+          const demoInsumos = [
+            { id: 'pla_neg', nombre: 'Filamento PLA Eco Negro', unidad_medida: 'gramos', costo_por_unidad: 0.025, stock_actual: 1450, stock_minimo: 350 },
+            { id: 'pla_roj', nombre: 'Filamento PLA Eco Rojo', unidad_medida: 'gramos', costo_por_unidad: 0.025, stock_actual: 920, stock_minimo: 300 },
+            { id: 'base_polo', nombre: 'Camiseta Algodón Base (Prensa)', unidad_medida: 'unidad', costo_por_unidad: 3.50, stock_actual: 12, stock_minimo: 8 },
+            { id: 'fil_dtf', nombre: 'Pintura/Película Estampado DTF', unidad_medida: 'cm2', costo_por_unidad: 0.015, stock_actual: 1900, stock_minimo: 400 },
+            { id: 'empaque_ec', nombre: 'Caja Regalo Cartón Micro', unidad_medida: 'unidad', costo_por_unidad: 0.65, stock_actual: 32, stock_minimo: 12 }
+          ];
+
+          const demoProductos = [
+            {
+              id: 'art_dragon',
+              nombre: 'Dragón Articulado Impresión 3D',
+              precio_venta: 18.50,
+              costo_operativo: 2.50,
+              receta: [
+                { insumoId: 'pla_roj', cantidad: 120 },
+                { insumoId: 'empaque_ec', cantidad: 1 }
+              ]
+            },
+            {
+              id: 'polo_dtf',
+              nombre: 'Camiseta Estilo DTF Custom',
+              precio_venta: 24.00,
+              costo_operativo: 4.50,
+              receta: [
+                { insumoId: 'base_polo', cantidad: 1 },
+                { insumoId: 'fil_dtf', cantidad: 140 }
+              ]
+            }
+          ];
+
+          const demoVentas = [
+            {
+              id: 'tx_demo1',
+              fecha: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+              productos: [{ id: 'art_dragon', nombre: 'Dragón Articulado Impresión 3D', precio_venta: 18.50, cantidad: 2 }],
+              total_venta: 37.00,
+              total_costo: 12.30, // calculated later
+              total_ganancia: 24.70
+            },
+            {
+              id: 'tx_demo2',
+              fecha: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+              productos: [
+                { id: 'polo_dtf', nombre: 'Camiseta Estilo DTF Custom', precio_venta: 24.00, cantidad: 1 },
+                { id: 'art_dragon', nombre: 'Dragón Articulado Impresión 3D', precio_venta: 18.50, cantidad: 1 }
+              ],
+              total_venta: 42.50,
+              total_costo: 16.20,
+              total_ganancia: 26.30
+            }
+          ];
+
+          // COMPUTED INITIALS FOR GUEST USERS
+          const userInitials = computed(() => {
+            if (user.value && user.value.displayName) {
+              return user.value.displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+            }
+            return 'FI';
+          });
+
+          // FORMAT AND RENDER RECENT DATES
+          function formatDate(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+
+          // INIT APPS & RECONSTRUCT SEED DATA
+          onMounted(() => {
+            initializePlatform();
+          });
+
+          // METRIC DYNAMIC COMPILATION
+          const metrics = computed(() => {
+            let totalSales = 0;
+            let totalCost = 0;
+            let totalProfit = 0;
+
+            ventas.value.forEach(v => {
+              totalSales += (v.total_venta || 0);
+              totalCost += (v.total_costo || 0);
+              totalProfit += (v.total_ganancia || 0);
+            });
+
+            // Adjust edge case
+            if (totalProfit === 0 && totalSales > 0) {
+              totalProfit = totalSales - totalCost;
+            }
+
+            const profitMargin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+
+            return {
+              totalSales,
+              totalCost,
+              totalProfit,
+              profitMargin
+            };
+          });
+
+          // SORT VENTAS DOWNWARD BY CHRONOLOGY
+          const sortedVentas = computed(() => {
+            return [...ventas.value].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+          });
+
+          // LOW STOCK COMPILER WARNING SIGNALS
+          const lowStockInsumos = computed(() => {
+            return insumos.value.filter(ins => {
+              const th = ins.stock_minimo !== undefined ? ins.stock_minimo : 10;
+              return ins.stock_actual <= th;
+            });
+          });
+
+          const lowStockCount = computed(() => lowStockInsumos.value.length);
+
+          // RECIPES DYNAMIC COMPUTED RECALCULATIONS
+          function getInsumoName(id) {
+            const matchIndex = insumos.value.find(i => i.id === id);
+            return matchIndex ? matchIndex.nombre : '(Insumo Desconocido)';
+          }
+
+          function getInsumoMedida(id) {
+            const matchIndex = insumos.value.find(i => i.id === id);
+            return matchIndex ? matchIndex.unidad_medida : '';
+          }
+
+          function getInsumoCostoUnit(id) {
+            const matchIndex = insumos.value.find(i => i.id === id);
+            return matchIndex ? Number(matchIndex.costo_por_unidad) : 0;
+          }
+
+          function calculateRecipeMaterialsCost(prod) {
+            if (!prod.receta) return 0;
+            return prod.receta.reduce((sum, item) => {
+              const uCost = getInsumoCostoUnit(item.insumoId);
+              return sum + (uCost * (item.cantidad || 0));
+            }, 0);
+          }
+
+          function calculateTotalProductCost(prod) {
+            const materials = calculateRecipeMaterialsCost(prod);
+            const op = Number(prod.costo_operativo) || 0;
+            return materials + op;
+          }
+
+          function calculateProfitPercentage(prod) {
+            const cost = calculateTotalProductCost(prod);
+            if (prod.precio_venta <= 0) return 0;
+            return ((prod.precio_venta - cost) / prod.precio_venta) * 100;
+          }
+
+          // FILTER RAW INSUMOS LIST WITH INPUT
+          const filteredInsumos = computed(() => {
+            if (!insumoSearchQuery.value.trim()) return insumos.value;
+            const q = insumoSearchQuery.value.toLowerCase();
+            return insumos.value.filter(i => i.nombre.toLowerCase().includes(q) || i.id.toLowerCase().includes(q));
+          });
+
+          // FILTER COMMERCIAL POS LIST
+          const filteredPOSProducts = computed(() => {
+            if (!posSearchQuery.value.trim()) return productos.value;
+            const q = posSearchQuery.value.toLowerCase();
+            return productos.value.filter(p => p.nombre.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
+          });
+
+          // POPULATE LIVE RECIPE FORM DETAILS IN MODAL INSIDE MODAL EDIT PANEL
+          const modalCalculatedTotalCost = computed(() => {
+            const dataObj = productoModal.data;
+            const op = Number(dataObj.costo_operativo) || 0;
+            const mats = dataObj.receta.reduce((acc, r) => {
+              return acc + (Number(r.cantidad || 0) * getInsumoCostoUnit(r.insumoId));
+            }, 0);
+            return op + mats;
+          });
+
+          const modalCalculatedProfitPercent = computed(() => {
+            const dataObj = productoModal.data;
+            const cost = modalCalculatedTotalCost.value;
+            if (dataObj.precio_venta <= 0) return 0;
+            return ((dataObj.precio_venta - cost) / dataObj.precio_venta) * 100;
+          });
+
+          // CART PROPERTY ACCESS METHODS
+          function getProductoName(id) {
+            const matchIndex = productos.value.find(p => p.id === id);
+            return matchIndex ? matchIndex.nombre : '';
+          }
+
+          function getProductoPrice(id) {
+            const matchIndex = productos.value.find(p => p.id === id);
+            return matchIndex ? Number(matchIndex.precio_venta) : 0;
+          }
+
+          // CART SUMMARY CALCULATIONS
+          const cartPriceTotal = computed(() => {
+            return cart.value.reduce((sum, item) => sum + (getProductoPrice(item.productoId) * item.cantidad), 0);
+          });
+
+          const cartCostTotal = computed(() => {
+            return cart.value.reduce((sum, item) => {
+              const matchedProd = productos.value.find(p => p.id === item.productoId);
+              if (!matchedProd) return sum;
+              return sum + (calculateTotalProductCost(matchedProd) * item.cantidad);
+            }, 0);
+          });
+
+          // STOCK AVAILABILITY CHECK ENFORCER
+          const consolidatedCartRequiredIngredients = computed(() => {
+            const required = {};
+            cart.value.forEach(item => {
+              const p = productos.value.find(prod => prod.id === item.productoId);
+              if (p && p.receta) {
+                p.receta.forEach(ing => {
+                  const neededAmount = (ing.cantidad || 0) * item.cantidad;
+                  required[ing.insumoId] = (required[ing.insumoId] || 0) + neededAmount;
+                });
+              }
+            });
+            return required;
+          });
+
+          // GENERATE REPORT LISTING STOCK SHORTAGES IF ANY
+          const stockDeficitReport = computed(() => {
+            const req = consolidatedCartRequiredIngredients.value;
+            const deficitList = [];
+            
+            Object.keys(req).forEach(id => {
+              const ism = insumos.value.find(i => i.id === id);
+              if (ism) {
+                const totalAvailable = ism.stock_actual;
+                const totalRequired = req[id];
+                if (totalRequired > totalAvailable) {
+                  deficitList.push({
+                    id: id,
+                    nombre: ism.nombre,
+                    medida: ism.unidad_medida,
+                    deficit: totalRequired - totalAvailable
+                  });
+                }
+              }
+            });
+
+            return deficitList;
+          });
+
+          const isStockDeficit = computed(() => stockDeficitReport.value.length > 0);
+
+          // POS ACTIONS
+          function addToCart(prod) {
+            const existingItem = cart.value.find(i => i.productoId === prod.id);
+            if (existingItem) {
+              existingItem.cantidad++;
+            } else {
+              cart.value.push({ productoId: prod.id, cantidad: 1 });
+            }
+          }
+
+          function incrementCartItem(id) {
+            const hit = cart.value.find(i => i.productoId === id);
+            if (hit) hit.cantidad++;
+          }
+
+          function decrementCartItem(id) {
+            const hit = cart.value.find(i => i.productoId === id);
+            if (hit) {
+              hit.cantidad--;
+              if (hit.cantidad <= 0) {
+                removeFromCart(id);
+              }
+            }
+          }
+
+          function removeFromCart(id) {
+            cart.value = cart.value.filter(i => i.productoId !== id);
+          }
+
+          // PLATFORM CONTROLLER BOOTSTRAPPING
+          async function initializePlatform() {
+            appLoading.value = true;
+            try {
+              const savedConfig = localStorage.getItem('manuf_firebase_config');
+              if (savedConfig) {
+                const parsed = JSON.parse(savedConfig);
+                firebaseSetupModal.configString = savedConfig;
+                
+                // Initialize Firebase Compact
+                if (firebase.apps.length === 0) {
+                  firebase.initializeApp(parsed);
+                }
+                
+                db.value = firebase.firestore();
+                auth.value = firebase.auth();
+                isDemoMode.value = false;
+                
+                // Subscribe Auth state
+                auth.value.onAuthStateChanged((usr) => {
+                  user.value = usr;
+                  if (usr) {
+                    isGuestMode.value = false;
+                    subscribeToFirestore();
+                  } else {
+                    insumos.value = [];
+                    productos.value = [];
+                    ventas.value = [];
+                  }
+                  appLoading.value = false;
+                });
+                
+              } else {
+                setOfflineFallback();
+              }
+            } catch (err) {
+              console.error("Firebase startup error:", err);
+              setOfflineFallback();
+            }
+          }
+
+          function setOfflineFallback() {
+            isDemoMode.value = true;
+            db.value = null;
+            auth.value = null;
+            user.value = null;
+            
+            // Check LocalStorage caches
+            const localIns = localStorage.getItem('manuf_insumos');
+            const localProds = localStorage.getItem('manuf_productos');
+            const localVents = localStorage.getItem('manuf_ventas');
+
+            if (localIns && localProds && localVents) {
+              insumos.value = JSON.parse(localIns);
+              productos.value = JSON.parse(localProds);
+              ventas.value = JSON.parse(localVents);
+            } else {
+              // Seed defaults
+              insumos.value = JSON.parse(JSON.stringify(demoInsumos));
+              productos.value = JSON.parse(JSON.stringify(demoProductos));
+              ventas.value = JSON.parse(JSON.stringify(demoVentas));
+              persistLocalData();
+            }
+            appLoading.value = false;
+          }
+
+          function persistLocalData() {
+            localStorage.setItem('manuf_insumos', JSON.stringify(insumos.value));
+            localStorage.setItem('manuf_productos', JSON.stringify(productos.value));
+            localStorage.setItem('manuf_ventas', JSON.stringify(ventas.value));
+          }
+
+          // FIRESTORE SUBSCRIPTIONS
+          let unsubscribeInsumos = null;
+          let unsubscribeProductos = null;
+          let unsubscribeVentas = null;
+
+          function subscribeToFirestore() {
+            if (!db.value || !user.value) return;
+
+            unsubscribeInsumos = db.value.collection('insumos').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              insumos.value = list;
+              if (insumos.value.length === 0) {
+                // Initialize cloud database with initial assets
+                demoInsumos.forEach(item => db.value.collection('insumos').doc(item.id).set(item));
+              }
+            }, err => alert('Fallo de lectura en Insumos: ' + err.message));
+
+            unsubscribeProductos = db.value.collection('productos').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              productos.value = list;
+              if (productos.value.length === 0) {
+                demoProductos.forEach(item => db.value.collection('productos').doc(item.id).set(item));
+              }
+            }, err => alert('Fallo de lectura en Productos: ' + err.message));
+
+            unsubscribeVentas = db.value.collection('ventas').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              ventas.value = list;
+              if (ventas.value.length === 0) {
+                demoVentas.forEach(item => db.value.collection('ventas').doc(item.id).set(item));
+              }
+            }, err => alert('Fallo de lectura en Ventas: ' + err.message));
+          }
+
+          function clearFirestoreSubscriptions() {
+            if (unsubscribeInsumos) unsubscribeInsumos();
+            if (unsubscribeProductos) unsubscribeProductos();
+            if (unsubscribeVentas) unsubscribeVentas();
+          }
+
+          // GOOGLE SIGN IN POPUP
+          async function signInWithGoogle() {
+            if (!auth.value) {
+              alert("Por favor configure Firebase en Ajustes antes de autenticarse.");
+              currentTab.value = 'config';
+              return;
+            }
+            try {
+              appLoading.value = true;
+              const provider = new firebase.auth.GoogleAuthProvider();
+              await auth.value.signInWithPopup(provider);
+            } catch (err) {
+              alert("Error de autenticación con Google: " + err.message);
+              appLoading.value = false;
+            }
+          }
+
+          function enterGuestMode() {
+            isGuestMode.value = true;
+            initializePlatform();
+          }
+
+          function logout() {
+            if (auth.value) {
+              auth.value.signOut();
+            }
+            clearFirestoreSubscriptions();
+            isGuestMode.value = false;
+            user.value = null;
+            initializePlatform();
+          }
+
+          // INSUMO CRUD TRIGGER
+          function openInsumoModal(insumo = null) {
+            if (insumo) {
+              insumoModal.isEditing = true;
+              insumoModal.data = JSON.parse(JSON.stringify(insumo));
+            } else {
+              insumoModal.isEditing = false;
+              insumoModal.data = {
+                id: 'ins_' + Date.now().toString(36),
+                nombre: '',
+                unidad_medida: 'gramos',
+                costo_por_unidad: 0.025,
+                stock_actual: 500,
+                stock_minimo: 100
+              };
+            }
+            insumoModal.open = true;
+          }
+
+          async function saveInsumo() {
+            const data = insumoModal.data;
+            if (!data.nombre || !data.unidad_medida || data.costo_por_unidad <= 0 || data.stock_actual < 0) {
+              alert("Por favor rellene todos los campos con valores positivos correctos.");
+              return;
+            }
+
+            if (isDemoMode.value) {
+              if (insumoModal.isEditing) {
+                const idx = insumos.value.findIndex(i => i.id === data.id);
+                if (idx !== -1) insumos.value[idx] = data;
+              } else {
+                insumos.value.push(data);
+              }
+              persistLocalData();
+              insumoModal.open = false;
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('insumos').doc(data.id).set(data);
+                insumoModal.open = false;
+              } catch (err) {
+                alert("Error guardando ingrediente en Firestore: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          async function confirmDeleteInsumo(insumo) {
+            const res = confirm(`¿Estás seguro de que deseas eliminar la materia prima "${insumo.nombre}"? Esto podría alterar productos que la requieran.`);
+            if (!res) return;
+
+            if (isDemoMode.value) {
+              insumos.value = insumos.value.filter(i => i.id !== insumo.id);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('insumos').doc(insumo.id).delete();
+              } catch (err) {
+                alert("Error al borrar de Firestore: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          // CATALOGUE PRODUCT RECIPE CRUD
+          function openProductoModal(prod = null) {
+            if (prod) {
+              productoModal.isEditing = true;
+              productoModal.data = JSON.parse(JSON.stringify(prod));
+            } else {
+              productoModal.isEditing = false;
+              productoModal.data = {
+                id: 'prod_' + Date.now().toString(36),
+                nombre: '',
+                precio_venta: 15.00,
+                costo_operativo: 2.00,
+                receta: []
+              };
+            }
+            productoModal.open = true;
+          }
+
+          function addInsumoToRecipe() {
+            productoModal.data.receta.push({ insumoId: '', cantidad: 0 });
+          }
+
+          function removeInsumoFromRecipe(idx) {
+            productoModal.data.receta.splice(idx, 1);
+          }
+
+          async function saveProducto() {
+            const data = productoModal.data;
+            if (!data.nombre || data.precio_venta <= 0 || data.costo_operativo < 0) {
+              alert("Por favor introduzca especificaciones de precio y costo válidas.");
+              return;
+            }
+
+            // check recipes
+            const hasEmptyItems = data.receta.some(r => !r.insumoId || r.cantidad <= 0);
+            if (hasEmptyItems) {
+              alert("Asegúrese de definir la materia prima y cantidades positivas para cada línea de la receta.");
+              return;
+            }
+
+            if (isDemoMode.value) {
+              if (productoModal.isEditing) {
+                const idx = productos.value.findIndex(p => p.id === data.id);
+                if (idx !== -1) productos.value[idx] = data;
+              } else {
+                productos.value.push(data);
+              }
+              persistLocalData();
+              productoModal.open = false;
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('productos').doc(data.id).set(data);
+                productoModal.open = false;
+              } catch (err) {
+                alert("Error al persistir producto formulado: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          async function confirmDeleteProducto(prod) {
+            const ans = confirm(`¿Borrar el producto "${prod.nombre}" del catálogo?`);
+            if (!ans) return;
+
+            if (isDemoMode.value) {
+              productos.value = productos.value.filter(p => p.id !== prod.id);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('productos').doc(prod.id).delete();
+              } catch (err) {
+                alert("Error de descarte: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          // PROCESSING POS SALES TRANSACTION (DECREMENTS RAW STOCK ATOMICALLY)
+          async function processSalesCheckout() {
+            if (cart.value.length === 0) return;
+            if (isStockDeficit.value) {
+              alert("No se puede registrar la venta. No hay suficiente abastecimiento de materias primas en el almacén.");
+              return;
+            }
+
+            const currentId = 'TX-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+            
+            // Map items for billing receipt document
+            const recProducts = cart.value.map(item => {
+              const baseValue = productos.value.find(p => p.id === item.productoId);
+              return {
+                id: item.productoId,
+                nombre: baseValue.nombre,
+                precio_venta: baseValue.precio_venta,
+                cantidad: item.cantidad
+              };
+            });
+
+            const salesDoc = {
+              id: currentId,
+              fecha: new Date().toISOString(),
+              productos: recProducts,
+              total_venta: cartPriceTotal.value,
+              total_costo: cartCostTotal.value,
+              total_ganancia: cartPriceTotal.value - cartCostTotal.value
+            };
+
+            if (isDemoMode.value) {
+              // Locally subtract materials stock
+              const consolidations = consolidatedCartRequiredIngredients.value;
+              
+              Object.keys(consolidations).forEach(insId => {
+                const ism = insumos.value.find(i => i.id === insId);
+                if (ism) {
+                  ism.stock_actual = Math.max(0, ism.stock_actual - consolidations[insId]);
+                }
+              });
+
+              ventas.value.push(salesDoc);
+              persistLocalData();
+              cart.value = [];
+              alert(`¡Venta procesada con éxito! Factura #${currentId} generada. Almacén actualizado.`);
+              currentTab.value = 'dashboard';
+            } else {
+              // Firebase Cloud Transaction Mode
+              try {
+                appLoading.value = true;
+                const consolidations = consolidatedCartRequiredIngredients.value;
+                const batch = db.value.batch();
+
+                // Add sales document
+                const salesRef = db.value.collection('ventas').doc(currentId);
+                batch.set(salesRef, salesDoc);
+
+                // Subtract each material
+                Object.keys(consolidations).forEach(insId => {
+                  const itemRef = db.value.collection('insumos').doc(insId);
+                  // We decrease atomically
+                  batch.update(itemRef, {
+                    stock_actual: firebase.firestore.FieldValue.increment(-consolidations[insId])
+                  });
+                });
+
+                await batch.commit();
+                cart.value = [];
+                alert(`¡Venta transaccional registrada! Código: ${currentId}. El inventario Firestore descontado.`);
+                currentTab.value = 'dashboard';
+              } catch (err) {
+                alert("Error procesando transacción en Cloud: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          // FIREBASE CONFIGURATION STORAGE SETTINGS
+          function openFirebaseSetup() {
+            firebaseSetupModal.open = true;
+          }
+
+          function saveFirebaseConfig() {
+            try {
+              const str = firebaseSetupModal.configString.trim();
+              if(!str) return;
+              
+              const parsed = JSON.parse(str);
+              if (!parsed.apiKey || !parsed.projectId) {
+                alert("La configuración pegada parece no contener claves esenciales (apiKey, projectId).");
+                return;
+              }
+
+              localStorage.setItem('manuf_firebase_config', str);
+              firebaseSetupModal.open = false;
+              alert("Credenciales guardadas con éxito. Recargando núcleo...");
+              window.location.reload();
+            } catch (err) {
+              alert("El formato JSON suministrado no es válido: " + err.message);
+            }
+          }
+
+          function disableFirebaseConfig() {
+            localStorage.removeItem('manuf_firebase_config');
+            firebaseSetupModal.open = false;
+            alert("Sincronización deshabilitada. Transiriendo a Modo Demo local...");
+            window.location.reload();
+          }
+
+          // REVERT DATABASES TO FACTORY RESET DEMONSTRATIVE DATA
+          function restoreDemoData() {
+            const choice = confirm("¿Restablecer el inventario de almacén y productos/ventas a los niveles originales de demostración? Se borrará el historial actual.");
+            if (!choice) return;
+
+            if (isDemoMode.value) {
+              insumos.value = JSON.parse(JSON.stringify(demoInsumos));
+              productos.value = JSON.parse(JSON.stringify(demoProductos));
+              ventas.value = JSON.parse(JSON.stringify(demoVentas));
+              persistLocalData();
+              alert("Base de datos local reestablecida.");
+            } else {
+              // For cloud Firebase, write files
+              try {
+                appLoading.value = true;
+                demoInsumos.forEach(item => db.value.collection('insumos').doc(item.id).set(item));
+                demoProductos.forEach(item => db.value.collection('productos').doc(item.id).set(item));
+                demoVentas.forEach(item => db.value.collection('ventas').doc(item.id).set(item));
+                alert("Colecciones de Firestore restablecidas.");
+              } catch (err) {
+                alert("Error escribiendo en la nube durante el restablecimiento: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          // DYNAMIC RESPONSIVE CHART GRAPHICS SVG PATH CALCULATORS
+          const chartPointsData = computed(() => {
+            if (ventas.value.length === 0) return [];
+
+            // Group sales revenue and profit by day/index to represent points
+            const sorted = [...ventas.value].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+            
+            // Limit to max 12 historic segments for aesthetic sizing
+            const segments = sorted.slice(-10);
+            
+            // Map max sale value for scale boundaries
+            const maxSale = Math.max(...segments.map(s => s.total_venta || 1), 10);
+            
+            return segments.map((item, index) => {
+              const xVal = (index / Math.max(1, segments.length - 1)) * 500;
+              // Translate coordinates (y points down in SVG, so 220 is bottom margin, 40 is top)
+              const yRevenue = 220 - (((item.total_venta || 0) / maxSale) * 180);
+              const yProfit = 220 - (((item.total_ganancia || (item.total_venta - (item.total_costo || 0))) / maxSale) * 180);
+              return { x: xVal, yRev: yRevenue, yProf: yProfit };
+            });
+          });
+
+          // LINE REVENUOUS SVG PATH STRING
+          const revenueLinePath = computed(() => {
+            const pts = chartPointsData.value;
+            if (pts.length === 0) return 'M 0 220';
+            let path = `M ${pts[0].x} ${pts[0].yRev}`;
+            for (let i = 1; i < pts.length; i++) {
+              path += ` L ${pts[i].x} ${pts[i].yRev}`;
+            }
+            return path;
+          });
+
+          // LINE PROFITABILITY SVG PATH STRING
+          const profitLinePath = computed(() => {
+            const pts = chartPointsData.value;
+            if (pts.length === 0) return 'M 0 220';
+            let path = `M ${pts[0].x} ${pts[0].yProf}`;
+            for (let i = 1; i < pts.length; i++) {
+              path += ` L ${pts[i].x} ${pts[i].yProf}`;
+            }
+            return path;
+          });
+
+          // CLOSED AREA UNDER SHAPE PATH FOR BG GRADIENT RENDER
+          const revenueAreaPath = computed(() => {
+            const pts = chartPointsData.value;
+            if (pts.length === 0) return 'M 0 220 L 0 220 Z';
+            let path = `M ${pts[0].x} 220 L ${pts[0].x} ${pts[0].yRev}`;
+            for (let i = 1; i < pts.length; i++) {
+              path += ` L ${pts[i].x} ${pts[i].yRev}`;
+            }
+            path += ` L ${pts[pts.length - 1].x} 220 Z`;
+            return path;
+          });
+
+          const profitAreaPath = computed(() => {
+            const pts = chartPointsData.value;
+            if (pts.length === 0) return 'M 0 220 L 0 220 Z';
+            let path = `M ${pts[0].x} 220 L ${pts[0].x} ${pts[0].yProf}`;
+            for (let i = 1; i < pts.length; i++) {
+              path += ` L ${pts[i].x} ${pts[i].yProf}`;
+            }
+            path += ` L ${pts[pts.length - 1].x} 220 Z`;
+            return path;
+          });
+
+          return {
+            tabs,
+            currentTab,
+            mobileMenuOpen,
+            appLoading,
+            isGuestMode,
+            isDemoMode,
+            user,
+            userInitials,
+            formatDate,
+            
+            // Models list arrays
+            insumos,
+            productos,
+            ventas,
+            
+            // Query variables
+            insumoSearchQuery,
+            posSearchQuery,
+            
+            // Modals controls
+            insumoModal,
+            productoModal,
+            firebaseSetupModal,
+            
+            // Dynamic totals computed functions
+            metrics,
+            sortedVentas,
+            lowStockInsumos,
+            lowStockCount,
+            getInsumoName,
+            getInsumoMedida,
+            getInsumoCostoUnit,
+            calculateRecipeMaterialsCost,
+            calculateTotalProductCost,
+            calculateProfitPercentage,
+            filteredInsumos,
+            filteredPOSProducts,
+            modalCalculatedTotalCost,
+            modalCalculatedProfitPercent,
+            addInsumoToRecipe,
+            removeInsumoFromRecipe,
+            
+            // Cart objects
+            cart,
+            addToCart,
+            incrementCartItem,
+            decrementCartItem,
+            removeFromCart,
+            getProductoName,
+            getProductoPrice,
+            cartPriceTotal,
+            cartCostTotal,
+            
+            // Stock evaluator check
+            consolidatedCartRequiredIngredients,
+            stockDeficitReport,
+            isStockDeficit,
+            processSalesCheckout,
+
+            // Core database actions
+            signInWithGoogle,
+            enterGuestMode,
+            logout,
+            saveInsumo,
+            confirmDeleteInsumo,
+            saveProducto,
+            confirmDeleteProducto,
+            restoreDemoData,
+            
+            // Firebase setup modal methods
+            openFirebaseSetup,
+            saveFirebaseConfig,
+            disableFirebaseConfig,
+
+            // SVG Path metrics
+            revenueLinePath,
+            profitLinePath,
+            revenueAreaPath,
+            profitAreaPath
+          };
+        }
+      }).mount('#app');
+    </script>
+  </body>
+</html>

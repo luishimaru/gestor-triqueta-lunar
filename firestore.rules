@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Default-deny catch-all rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Modern Secure Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Rules for Insumos (Materia Prima)
+    match /insumos/{insumoId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(insumoId);
+    }
+
+    // Rules for Productos (Recetas)
+    match /productos/{productoId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(productoId);
+    }
+
+    // Rules for Ventas (Registro)
+    match /ventas/{ventaId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(ventaId);
+    }
+  }
+}
