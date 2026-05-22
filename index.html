@@ -1667,36 +1667,24 @@
               const list = [];
               snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
               insumos.value = list;
-              if (insumos.value.length === 0) {
-                demoInsumos.forEach(item => db.value.collection('insumos').doc(item.id).set(item));
-              }
             }, err => alert('Fallo de lectura en Insumos: ' + err.message));
 
             unsubscribeProductos = db.value.collection('productos').onSnapshot(snap => {
               const list = [];
               snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
               productos.value = list;
-              if (productos.value.length === 0) {
-                demoProductos.forEach(item => db.value.collection('productos').doc(item.id).set(item));
-              }
             }, err => alert('Fallo de lectura en Productos: ' + err.message));
 
             unsubscribeVentas = db.value.collection('ventas').onSnapshot(snap => {
               const list = [];
               snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
               ventas.value = list;
-              if (ventas.value.length === 0) {
-                demoVentas.forEach(item => db.value.collection('ventas').doc(item.id).set(item));
-              }
             }, err => alert('Fallo de lectura en Ventas: ' + err.message));
 
             unsubscribeCotizaciones = db.value.collection('cotizaciones').onSnapshot(snap => {
               const list = [];
               snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
               cotizaciones.value = list;
-              if (cotizaciones.value.length === 0) {
-                demoCotizaciones.forEach(item => db.value.collection('cotizaciones').doc(item.id).set(item));
-              }
             }, err => console.error('Fallo de lectura en Cotizaciones: ' + err.message));
 
             unsubscribeMovimientos = db.value.collection('movimientos').onSnapshot(snap => {
@@ -2246,6 +2234,8 @@
             signInWithGoogle,
             enterGuestMode,
             logout,
+            openInsumoModal,
+            openProductoModal,
             saveInsumo,
             confirmDeleteInsumo,
             saveProducto,
