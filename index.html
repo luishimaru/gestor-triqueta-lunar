@@ -154,10 +154,19 @@
 
             <!-- TAB 1: DASHBOARD -->
             <section v-if="currentTab === 'dashboard'" class="space-y-6">
-              <div class="md:hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Panel de Control</h1>
                   <p class="text-slate-500 text-sm">Resumen de finanzas y estado de inventario para tus productos e insumos.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm shrink-0">
+                  <i class="fas fa-calendar-day text-indigo-500 text-sm"></i>
+                  <select v-model="dateFilter" class="bg-transparent border-none text-slate-700 text-sm font-semibold focus:ring-0 outline-none cursor-pointer pr-4">
+                    <option value="current_month">Este Mes</option>
+                    <option value="last_month">Mes Anterior</option>
+                    <option value="this_year">Este Año (YTD)</option>
+                    <option value="all">Histórico Total</option>
+                  </select>
                 </div>
               </div>
 
@@ -1221,6 +1230,7 @@
           // Form Search Queries
           const insumoSearchQuery = ref('');
           const posSearchQuery = ref('');
+          const dateFilter = ref('current_month');
 
           // Company configurations loaded from localStorage
           const empresaConfig = reactive({
@@ -1381,13 +1391,38 @@
             initializePlatform();
           });
 
+          // FILTER DASHBOARD VENTAS
+          const filteredDashboardVentas = computed(() => {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            return ventas.value.filter(v => {
+              const vDate = new Date(v.fecha);
+              if (dateFilter.value === 'current_month') {
+                return vDate.getMonth() === currentMonth && vDate.getFullYear() === currentYear;
+              } else if (dateFilter.value === 'last_month') {
+                let targetMonth = currentMonth - 1;
+                let targetYear = currentYear;
+                if (targetMonth < 0) {
+                  targetMonth = 11;
+                  targetYear--;
+                }
+                return vDate.getMonth() === targetMonth && vDate.getFullYear() === targetYear;
+              } else if (dateFilter.value === 'this_year') {
+                return vDate.getFullYear() === currentYear;
+              }
+              return true; // 'all'
+            });
+          });
+
           // METRIC DYNAMIC COMPILATION
           const metrics = computed(() => {
             let totalSales = 0;
             let totalCost = 0;
             let totalProfit = 0;
 
-            ventas.value.forEach(v => {
+            filteredDashboardVentas.value.forEach(v => {
               totalSales += (v.total_venta || 0);
               totalCost += (v.total_costo || 0);
               totalProfit += (v.total_ganancia || 0);
@@ -1604,27 +1639,31 @@
               auth.value = firebase.auth();
               isDemoMode.value = false;
               
-              auth.value.onAuthStateChanged((usr) => {
-                const correosAutorizados = ["ludwigcrc@gmail.com", "danna1995@gmail.com"];
-                
+              auth.value.onAuthStateChanged(async (usr) => {
                 if (usr) {
-                  // Validamos el correo antes de dejar pasar al usuario
-                  if (correosAutorizados.includes(usr.email)) {
+                  try {
+                    // Verificación de seguridad profesional:
+                    // Intentamos leer 1 documento. Si Firestore nos rechaza (por las reglas),
+                    // el usuario no está autorizado. No hay correos hardcodeados en el frontend.
+                    await db.value.collection('insumos').limit(1).get();
+                    
                     user.value = usr;
                     isGuestMode.value = false;
                     subscribeToFirestore();
-                    appLoading.value = false;
-                  } else {
-                    // Si el correo no está en la lista, cerramos sesión inmediatamente
+                  } catch (err) {
+                    // Si el servidor rechaza la conexión (Permisos insuficientes)
                     auth.value.signOut();
-                    alert("Acceso denegado: Tu cuenta no tiene permisos para operar en Triqueta Lunar.");
                     user.value = null;
-                    appLoading.value = false;
+                    alert("Acceso denegado. No tienes autorización en el servidor de Triqueta Lunar.");
                   }
                 } else {
                   user.value = null;
-                  appLoading.value = false;
+                  insumos.value = [];
+                  productos.value = [];
+                  ventas.value = [];
+                  cotizaciones.value = [];
                 }
+                appLoading.value = false;
               });
               
             } catch (err) {
@@ -2133,8 +2172,8 @@
 
           // DYNAMIC RESPONSIVE CHART GRAPHICS SVG PATH CALCULATORS
           const chartPointsData = computed(() => {
-            if (ventas.value.length === 0) return [];
-            const sorted = [...ventas.value].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+            if (filteredDashboardVentas.value.length === 0) return [];
+            const sorted = [...filteredDashboardVentas.value].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
             const segments = sorted.slice(-10);
             const maxSale = Math.max(...segments.map(s => s.total_venta || 1), 10);
             
@@ -2212,6 +2251,7 @@
             // Query variables
             insumoSearchQuery,
             posSearchQuery,
+            dateFilter,
             empresaConfig,
             posCliente,
             
