@@ -218,6 +218,28 @@
                 </div>
               </div>
 
+              <!-- IMPACTO NO COMERCIAL CARDS -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2 mb-6">
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Costo por Mermas / Errores</span>
+                    <span class="text-xl font-bold text-amber-900 block mt-1 font-mono">${{ metrics.totalMermas.toLocaleString() }}</span>
+                  </div>
+                  <div class="w-10 h-10 rounded-xl bg-amber-200/50 flex items-center justify-center text-amber-600 text-lg">
+                    <i class="fas fa-triangle-exclamation"></i>
+                  </div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Uso Personal / Muestras</span>
+                    <span class="text-xl font-bold text-purple-900 block mt-1 font-mono">${{ metrics.totalPersonal.toLocaleString() }}</span>
+                  </div>
+                  <div class="w-10 h-10 rounded-xl bg-purple-200/50 flex items-center justify-center text-purple-600 text-lg">
+                    <i class="fas fa-gift"></i>
+                  </div>
+                </div>
+              </div>
+
               <!-- DYNAMIC CHART + STATUS LIST -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- CHART CONTAINER -->
@@ -781,6 +803,65 @@
               </div>
             </section>
 
+            <!-- TAB: MOVIMIENTOS -->
+            <section v-if="currentTab === 'movimientos'" class="space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Ajustes y Mermas</h1>
+                  <p class="text-slate-500 text-sm">Registra insumos utilizados en proyectos personales o desperdiciados para mantener tus métricas de ventas limpias.</p>
+                </div>
+                <button @click="openMovimientoModal()" class="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-xl flex items-center justify-center gap-2 shadow-md transition duration-150 cursor-pointer text-sm">
+                  <i class="fas fa-scale-unbalanced"></i>
+                  Registrar Ajuste / Merma
+                </button>
+              </div>
+
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
+                      <tr>
+                        <th class="px-6 py-3">Código</th>
+                        <th class="px-6 py-3">Fecha</th>
+                        <th class="px-6 py-3">Motivo / Tipo</th>
+                        <th class="px-6 py-3">Insumo Afectado</th>
+                        <th class="px-6 py-3 text-right">Cantidad</th>
+                        <th class="px-6 py-3 text-right">Costo Imputado</th>
+                        <th class="px-6 py-3 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-slate-100">
+                      <tr v-if="sortedMovimientos.length === 0">
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                          <i class="fas fa-clipboard-check text-3xl mb-2 text-slate-300 block"></i>
+                          No hay ajustes ni mermas registradas.
+                        </td>
+                      </tr>
+                      <tr v-for="m in sortedMovimientos" :key="m.id" class="hover:bg-slate-50/80 transition duration-150">
+                        <td class="py-3 px-6 font-mono font-bold text-slate-900 text-xs">{{ m.id }}</td>
+                        <td class="py-3 px-6 text-slate-400 text-xs">{{ formatDateStrict(m.fecha) }}</td>
+                        <td class="py-3 px-6">
+                          <span v-if="m.tipo === 'merma'" class="inline-block bg-amber-100 text-amber-700 text-[11px] px-2 py-0.5 rounded font-bold"><i class="fas fa-triangle-exclamation mr-1"></i> Merma / Error</span>
+                          <span v-if="m.tipo === 'personal'" class="inline-block bg-purple-100 text-purple-700 text-[11px] px-2 py-0.5 rounded font-bold"><i class="fas fa-gift mr-1"></i> Uso Personal</span>
+                        </td>
+                        <td class="py-3 px-6 text-xs text-slate-700 font-medium">
+                          {{ m.nombre_insumo }}
+                          <p v-if="m.notas" class="text-[10px] text-slate-400 mt-0.5 italic">"{{ m.notas }}"</p>
+                        </td>
+                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-bold">-{{ m.cantidad }} {{ m.unidad }}</td>
+                        <td class="py-3 px-6 text-right font-mono text-slate-500">${{ (m.costo_total || 0).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right">
+                          <button @click="deleteMovimiento(m)" class="w-7 h-7 bg-red-50 text-red-500 rounded-lg border border-red-100 hover:bg-red-100 transition flex items-center justify-center cursor-pointer ml-auto" title="Revertir movimiento">
+                            <i class="fas fa-rotate-left text-xs"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
             <!-- TAB 7: CONFIGURATION / AJUSTES -->
             <section v-if="currentTab === 'config'" class="space-y-6">
               <div>
@@ -1155,6 +1236,57 @@
         </div>
       </div>
 
+      <!-- 4. MODAL MOVIMIENTOS -->
+      <div v-if="movimientoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
+          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-800">Registrar Ajuste / Salida</h3>
+            <button @click="movimientoModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
+              <i class="fas fa-xmark text-sm"></i>
+            </button>
+          </div>
+          
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Motivo de la Salida</label>
+              <select v-model="movimientoModal.data.tipo" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer transition">
+                <option value="merma">Merma / Error de Manufactura</option>
+                <option value="personal">Proyecto Personal / Marketing</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Insumo Afectado</label>
+              <select v-model="movimientoModal.data.insumoId" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer transition">
+                <option value="" disabled>Selecciona la materia prima...</option>
+                <option v-for="ins in insumos" :key="ins.id" :value="ins.id">
+                  {{ ins.nombre }} (Stock: {{ ins.stock_actual }} {{ ins.unidad_medida }})
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Cantidad a Descontar</label>
+              <input v-model.number="movimientoModal.data.cantidad" type="number" step="any" placeholder="Ej. 50" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Notas / Detalles (Opcional)</label>
+              <input v-model="movimientoModal.data.notas" type="text" placeholder="Ej. Prueba fallida calibrando láser" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-end gap-3.5">
+            <button @click="movimientoModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Cancelar
+            </button>
+            <button @click="processMovimiento" class="py-2.5 px-5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-md shadow-amber-600/15 cursor-pointer transition">
+              Descontar de Almacén
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- 3. CONFIGURATION MODAL FIREBASE API KEYS -->
       <div v-if="firebaseSetupModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
@@ -1208,6 +1340,7 @@
             { id: 'pos', name: 'Punto de Venta POS', icon: 'fa-shopping-cart' },
             { id: 'cotizaciones', name: 'Historial Cotizaciones', icon: 'fa-file-invoice' },
             { id: 'facturas', name: 'Historial de Ventas (Facturas)', icon: 'fa-file-lines' },
+            { id: 'movimientos', name: 'Ajustes y Mermas', icon: 'fa-scale-unbalanced' },
             { id: 'config', name: 'Ajustes', icon: 'fa-gears' },
           ];
 
@@ -1226,6 +1359,7 @@
           const productos = ref([]);
           const ventas = ref([]);
           const cotizaciones = ref([]);
+          const movimientos = ref([]);
 
           // Form Search Queries
           const insumoSearchQuery = ref('');
@@ -1256,6 +1390,11 @@
             open: false,
             isEditing: false,
             data: { id: '', nombre: '', precio_venta: 15.00, costo_operativo: 2.00, receta: [] }
+          });
+
+          const movimientoModal = reactive({
+            open: false,
+            data: { tipo: 'merma', insumoId: '', cantidad: null, notas: '' }
           });
 
           const firebaseSetupModal = reactive({
@@ -1416,16 +1555,47 @@
             });
           });
 
+                    const filteredDashboardMovimientos = computed(() => {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            return movimientos.value.filter(m => {
+              const mDate = new Date(m.fecha);
+              if (dateFilter.value === 'current_month') {
+                return mDate.getMonth() === currentMonth && mDate.getFullYear() === currentYear;
+              } else if (dateFilter.value === 'last_month') {
+                let targetMonth = currentMonth - 1;
+                let targetYear = currentYear;
+                if (targetMonth < 0) {
+                  targetMonth = 11;
+                  targetYear--;
+                }
+                return mDate.getMonth() === targetMonth && mDate.getFullYear() === targetYear;
+              } else if (dateFilter.value === 'this_year') {
+                return mDate.getFullYear() === currentYear;
+              }
+              return true; // 'all'
+            });
+          });
+
           // METRIC DYNAMIC COMPILATION
           const metrics = computed(() => {
             let totalSales = 0;
             let totalCost = 0;
             let totalProfit = 0;
+            let totalMermas = 0;
+            let totalPersonal = 0;
 
             filteredDashboardVentas.value.forEach(v => {
               totalSales += (v.total_venta || 0);
               totalCost += (v.total_costo || 0);
               totalProfit += (v.total_ganancia || 0);
+            });
+
+            filteredDashboardMovimientos.value.forEach(m => {
+              if (m.tipo === 'merma') totalMermas += (m.costo_total || 0);
+              if (m.tipo === 'personal') totalPersonal += (m.costo_total || 0);
             });
 
             if (totalProfit === 0 && totalSales > 0) {
@@ -1438,10 +1608,11 @@
               totalSales,
               totalCost,
               totalProfit,
-              profitMargin
+              profitMargin,
+              totalMermas,
+              totalPersonal
             };
           });
-
           // SORT VENTAS DOWNWARD BY CHRONOLOGY
           const sortedVentas = computed(() => {
             return [...ventas.value].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
@@ -1662,6 +1833,7 @@
                   productos.value = [];
                   ventas.value = [];
                   cotizaciones.value = [];
+                  movimientos.value = [];
                 }
                 appLoading.value = false;
               });
@@ -1682,17 +1854,20 @@
             const localProds = localStorage.getItem('manuf_productos');
             const localVents = localStorage.getItem('manuf_ventas');
             const localQuotes = localStorage.getItem('manuf_cotizaciones');
+            const localMovs = localStorage.getItem('manuf_movimientos');
 
-            if (localIns && localProds && localVents && localQuotes) {
+            if (localIns && localProds && localVents && localQuotes && localMovs) {
               insumos.value = JSON.parse(localIns);
               productos.value = JSON.parse(localProds);
               ventas.value = JSON.parse(localVents);
               cotizaciones.value = JSON.parse(localQuotes);
+              movimientos.value = JSON.parse(localMovs);
             } else {
               insumos.value = JSON.parse(JSON.stringify(demoInsumos));
               productos.value = JSON.parse(JSON.stringify(demoProductos));
               ventas.value = JSON.parse(JSON.stringify(demoVentas));
               cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
+              movimientos.value = [];
               persistLocalData();
             }
             appLoading.value = false;
@@ -1703,13 +1878,21 @@
             localStorage.setItem('manuf_productos', JSON.stringify(productos.value));
             localStorage.setItem('manuf_ventas', JSON.stringify(ventas.value));
             localStorage.setItem('manuf_cotizaciones', JSON.stringify(cotizaciones.value));
+            localStorage.setItem('manuf_movimientos', JSON.stringify(movimientos.value));
           }
 
           // FIRESTORE SUBSCRIPTIONS
           let unsubscribeInsumos = null;
           let unsubscribeProductos = null;
           let unsubscribeVentas = null;
-          let unsubscribeCotizaciones = null;
+          let unsubscribeMovimientos = db.value.collection('movimientos').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              movimientos.value = list;
+            }, err => console.error(err));
+
+            unsubscribeCotizaciones = null;
+          let unsubscribeMovimientos = null;
 
           function subscribeToFirestore() {
             if (!db.value || !user.value) return;
@@ -1756,6 +1939,7 @@
             if (unsubscribeProductos) unsubscribeProductos();
             if (unsubscribeVentas) unsubscribeVentas();
             if (unsubscribeCotizaciones) unsubscribeCotizaciones();
+            if (unsubscribeMovimientos) unsubscribeMovimientos();
           }
 
           // GOOGLE SIGN IN POPUP
@@ -2110,6 +2294,106 @@
             }
           }
 
+                    function openMovimientoModal() {
+            movimientoModal.data = { tipo: 'merma', insumoId: '', cantidad: null, notas: '' };
+            movimientoModal.open = true;
+          }
+
+          async function processMovimiento() {
+            const data = movimientoModal.data;
+            if (!data.insumoId || data.cantidad <= 0) {
+              alert("Seleccione un insumo y una cantidad válida mayor a 0.");
+              return;
+            }
+
+            const ism = insumos.value.find(i => i.id === data.insumoId);
+            if (!ism) return;
+
+            if (data.cantidad > ism.stock_actual) {
+              alert(`Solo tienes ${ism.stock_actual} ${ism.unidad_medida} disponibles.`);
+              return;
+            }
+
+            const costo_total = data.cantidad * ism.costo_por_unidad;
+            const currentId = getNextId(movimientos.value, 'MOV');
+
+            const movDoc = {
+              id: currentId,
+              fecha: new Date().toISOString(),
+              tipo: data.tipo,
+              insumoId: data.insumoId,
+              nombre_insumo: ism.nombre,
+              cantidad: data.cantidad,
+              unidad: ism.unidad_medida,
+              costo_total: costo_total,
+              notas: data.notas.trim()
+            };
+
+            if (isDemoMode.value) {
+              ism.stock_actual -= data.cantidad;
+              movimientos.value.push(movDoc);
+              persistLocalData();
+              movimientoModal.open = false;
+              alert(`Movimiento ${currentId} guardado. Inventario actualizado.`);
+            } else {
+              try {
+                appLoading.value = true;
+                const batch = db.value.batch();
+                
+                const movRef = db.value.collection('movimientos').doc(currentId);
+                batch.set(movRef, movDoc);
+
+                const insRef = db.value.collection('insumos').doc(data.insumoId);
+                batch.update(insRef, {
+                  stock_actual: firebase.firestore.FieldValue.increment(-data.cantidad)
+                });
+
+                await batch.commit();
+                movimientoModal.open = false;
+                alert(`Movimiento ${currentId} registrado en la nube.`);
+              } catch (err) {
+                alert("Error guardando movimiento: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          async function deleteMovimiento(mov) {
+            const c = confirm(`¿Revertir este movimiento? Se devolverán ${mov.cantidad} ${mov.unidad} de ${mov.nombre_insumo} al inventario.`);
+            if (!c) return;
+
+            if (isDemoMode.value) {
+              const ism = insumos.value.find(i => i.id === mov.insumoId);
+              if (ism) ism.stock_actual += mov.cantidad;
+              movimientos.value = movimientos.value.filter(m => m.id !== mov.id);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                const batch = db.value.batch();
+                
+                const movRef = db.value.collection('movimientos').doc(mov.id);
+                batch.delete(movRef);
+
+                const insRef = db.value.collection('insumos').doc(mov.insumoId);
+                batch.update(insRef, {
+                  stock_actual: firebase.firestore.FieldValue.increment(mov.cantidad)
+                });
+
+                await batch.commit();
+              } catch (err) {
+                alert("Error revirtiendo movimiento: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          const sortedMovimientos = computed(() => {
+            return [...movimientos.value].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+          });
+
           // FIREBASE CONFIGURATION STORAGE SETTINGS
           function openFirebaseSetup() {
             firebaseSetupModal.open = true;
@@ -2152,6 +2436,7 @@
               productos.value = JSON.parse(JSON.stringify(demoProductos));
               ventas.value = JSON.parse(JSON.stringify(demoVentas));
               cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
+              movimientos.value = [];
               persistLocalData();
               alert("Base de datos local reestablecida.");
             } else {
@@ -2247,6 +2532,7 @@
             productos,
             ventas,
             cotizaciones,
+            movimientos,
             
             // Query variables
             insumoSearchQuery,
@@ -2260,6 +2546,7 @@
             productoModal,
             firebaseSetupModal,
             pdfPreviewModal,
+            movimientoModal,
             
             // Dynamic totals computed functions
             metrics,
@@ -2297,6 +2584,10 @@
             processSalesCheckout,
             processCotizacion,
             deleteCotizacion,
+            openMovimientoModal,
+            processMovimiento,
+            deleteMovimiento,
+            sortedMovimientos,
             openPdfPreview,
             downloadPdf,
             saveEmpresaConfig,
