@@ -1734,7 +1734,8 @@
           }
 
           function openInsumoModal(insumo = null) {
-            if (insumo) {
+            // El '&& insumo.id' evita que el evento del click rompa la función
+            if (insumo && insumo.id) {
               insumoModal.isEditing = true;
               insumoModal.data = JSON.parse(JSON.stringify(insumo));
             } else {
@@ -1743,9 +1744,9 @@
                 id: 'ins_' + Date.now().toString(36),
                 nombre: '',
                 unidad_medida: 'gramos',
-                costo_por_unidad: 0.025,
-                stock_actual: 500,
-                stock_minimo: 100
+                costo_por_unidad: 0,
+                stock_actual: 0,
+                stock_minimo: 10
               };
             }
             insumoModal.open = true;
@@ -1800,7 +1801,8 @@
           }
 
           function openProductoModal(prod = null) {
-            if (prod) {
+            // Protección contra eventos del DOM
+            if (prod && prod.id) {
               productoModal.isEditing = true;
               productoModal.data = JSON.parse(JSON.stringify(prod));
             } else {
@@ -1808,8 +1810,8 @@
               productoModal.data = {
                 id: 'prod_' + Date.now().toString(36),
                 nombre: '',
-                precio_venta: 15.00,
-                costo_operativo: 2.00,
+                precio_venta: 0,
+                costo_operativo: 0,
                 receta: []
               };
             }
