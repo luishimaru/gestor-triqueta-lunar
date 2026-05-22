@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Triqueta Lunar - Gestor de Manufactura</title>
-    <!-- Vue 3 CDN (Composition API Global) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -20,13 +18,9 @@
         }
       }
     </script>
-    <!-- Google Fonts for Typography -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2pdf.js CDN for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Firebase V9 Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -34,7 +28,6 @@
   <body class="h-full font-sans text-slate-800 antialiased overflow-hidden">
     <div id="app" class="h-full flex flex-col md:flex-row relative">
       
-      <!-- LOADING LAYER -->
       <div v-if="appLoading" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center transition-all duration-300">
         <div class="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center max-w-sm w-full mx-4">
           <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -43,7 +36,6 @@
         </div>
       </div>
 
-      <!-- APP LOGIN VIEW -->
       <div v-if="!user && !isGuestMode" class="w-full min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl flex flex-col max-w-md w-full p-8 relative overflow-hidden">
           <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl"></div>
@@ -59,13 +51,11 @@
           <h2 class="text-2xl font-bold text-slate-800 tracking-tight leading-tight mb-2">Control de Manufactura</h2>
           <p class="text-slate-500 mb-8 text-sm">Gestiona productos personalizados, recetas de materias primas y ventas en tiempo real.</p>
           
-          <!-- Google Auth button -->
           <button @click="signInWithGoogle" class="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white font-medium rounded-xl flex items-center justify-center gap-3 shadow-md hover:shadow-lg transition-all duration-150 mb-4 cursor-pointer">
             <i class="fab fa-google text-lg text-white"></i>
             Ingresar con Google Auth
           </button>
           
-          <!-- Offline / Demo button -->
           <button @click="enterGuestMode" class="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer">
             <i class="fas fa-laptop-code text-sm"></i>
             Probar en Modo Offline de Demostración
@@ -77,9 +67,7 @@
         </div>
       </div>
 
-      <!-- MAIN LAYOUT (SIDEBAR + WORKSPACE) -->
       <template v-else>
-        <!-- MOBILE HEADER -->
         <header class="md:hidden bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 py-3 text-white">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-indigo-50 rounded flex items-center justify-center">
@@ -93,7 +81,6 @@
           </button>
         </header>
 
-        <!-- SIDEBAR LEFT -->
         <aside class="fixed md:relative inset-y-0 left-0 w-64 bg-slate-900 text-white md:flex flex-col border-r border-slate-800 z-30 transition-transform duration-300 -translate-x-full md:translate-x-0" :class="{'translate-x-0': mobileMenuOpen}">
           <div class="p-6 hidden md:flex items-center justify-between border-b border-slate-800">
             <div class="flex items-center gap-3">
@@ -105,7 +92,6 @@
             <span v-if="isDemoMode" class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold uppercase tracking-wider scale-90">Demo</span>
           </div>
 
-          <!-- NAVIGATION ITEMS -->
           <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
             <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id; mobileMenuOpen = false" class="w-full text-left py-2 px-3 rounded-md flex items-center justify-between transition-all duration-150 cursor-pointer text-sm font-medium" :class="currentTab === tab.id ? 'bg-indigo-600 text-white shadow-sm' : 'hover:bg-slate-800 text-slate-400 hover:text-white'">
               <div class="flex items-center gap-3">
@@ -116,7 +102,6 @@
             </button>
           </nav>
 
-          <!-- BOTTOM SESSION BAR -->
           <div class="p-4 border-t border-slate-800">
             <div class="flex items-center gap-3 p-2 bg-slate-800/50 rounded-lg">
               <div class="w-8 h-8 rounded-full bg-slate-705 flex items-center justify-center text-xs overflow-hidden font-bold">
@@ -135,10 +120,8 @@
           </div>
         </aside>
 
-        <!-- MAIN AREA WITH TAB INTERFACES -->
         <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50">
           
-          <!-- DESKTOP TOP BAR HEADER -->
           <header class="h-16 bg-white border-b border-slate-200 hidden md:flex items-center justify-between px-8 shrink-0">
             <h1 class="text-lg font-bold text-slate-900 uppercase tracking-tight">Panel General de Producción</h1>
             <div class="flex items-center gap-4">
@@ -152,7 +135,6 @@
 
           <div class="flex-1 overflow-y-auto px-4 md:px-8 py-6 h-full">
 
-            <!-- TAB 1: DASHBOARD -->
             <section v-if="currentTab === 'dashboard'" class="space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -170,9 +152,28 @@
                 </div>
               </div>
 
-              <!-- FINANCIAL CARDS -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2 mb-6">
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Costo por Mermas / Errores</span>
+                    <span class="text-xl font-bold text-amber-900 block mt-1 font-mono">${{ metrics.totalMermas.toLocaleString() }}</span>
+                  </div>
+                  <div class="w-10 h-10 rounded-xl bg-amber-200/50 flex items-center justify-center text-amber-600 text-lg">
+                    <i class="fas fa-triangle-exclamation"></i>
+                  </div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Uso Personal / Muestras</span>
+                    <span class="text-xl font-bold text-purple-900 block mt-1 font-mono">${{ metrics.totalPersonal.toLocaleString() }}</span>
+                  </div>
+                  <div class="w-10 h-10 rounded-xl bg-purple-200/50 flex items-center justify-center text-purple-600 text-lg">
+                    <i class="fas fa-gift"></i>
+                  </div>
+                </div>
+              </div>
+
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                   <div>
                     <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Ventas Registradas</span>
@@ -218,31 +219,7 @@
                 </div>
               </div>
 
-              <!-- IMPACTO NO COMERCIAL CARDS -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2 mb-6">
-                <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center justify-between">
-                  <div>
-                    <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Costo por Mermas / Errores</span>
-                    <span class="text-xl font-bold text-amber-900 block mt-1 font-mono">${{ metrics.totalMermas.toLocaleString() }}</span>
-                  </div>
-                  <div class="w-10 h-10 rounded-xl bg-amber-200/50 flex items-center justify-center text-amber-600 text-lg">
-                    <i class="fas fa-triangle-exclamation"></i>
-                  </div>
-                </div>
-                <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-center justify-between">
-                  <div>
-                    <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Uso Personal / Muestras</span>
-                    <span class="text-xl font-bold text-purple-900 block mt-1 font-mono">${{ metrics.totalPersonal.toLocaleString() }}</span>
-                  </div>
-                  <div class="w-10 h-10 rounded-xl bg-purple-200/50 flex items-center justify-center text-purple-600 text-lg">
-                    <i class="fas fa-gift"></i>
-                  </div>
-                </div>
-              </div>
-
-              <!-- DYNAMIC CHART + STATUS LIST -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- CHART CONTAINER -->
                 <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                   <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase mb-4">Evolución de Finanzas</h3>
                   
@@ -251,25 +228,18 @@
                     <span>Aún no hay transacciones para graficar</span>
                   </div>
                   <div v-else class="relative">
-                    <!-- High visual fidelity SVG Chart -->
                     <svg class="w-full h-64" viewBox="0 0 500 240" preserveAspectRatio="none">
-                      <!-- Grid lines -->
                       <line x1="0" y1="40" x2="500" y2="40" stroke="#f1f5f9" stroke-width="1" />
                       <line x1="0" y1="100" x2="500" y2="100" stroke="#f1f5f9" stroke-width="1" />
                       <line x1="0" y1="160" x2="500" y2="160" stroke="#f1f5f9" stroke-width="1" />
                       <line x1="0" y1="220" x2="500" y2="220" stroke="#e2e8f0" stroke-width="1.5" />
 
-                      <!-- Area under revenue -->
                       <path :d="revenueAreaPath" fill="url(#revenueGrad)" opacity="0.15"></path>
-                      
-                      <!-- Area under profit -->
                       <path :d="profitAreaPath" fill="url(#profitGrad)" opacity="0.15"></path>
 
-                      <!-- Path Lines -->
                       <path :d="revenueLinePath" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
                       <path :d="profitLinePath" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
                       
-                      <!-- Define gradients -->
                       <defs>
                         <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stop-color="#6366f1" />
@@ -282,7 +252,6 @@
                       </defs>
                     </svg>
                     
-                    <!-- Legend layout -->
                     <div class="flex items-center gap-6 mt-4 justify-center text-xs">
                       <div class="flex items-center gap-1.5 font-medium">
                         <span class="w-3 h-3 bg-indigo-500 rounded-full"></span>
@@ -296,7 +265,6 @@
                   </div>
                 </div>
 
-                <!-- ALERTS PANEL / LOW STOCK -->
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full">
                   <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Stock Crítico</h3>
@@ -305,7 +273,6 @@
                     </span>
                   </div>
 
-                  <!-- Alert feed -->
                   <div class="flex-1 overflow-y-auto space-y-3 pr-1 max-h-64 lg:max-h-none">
                     <div v-if="lowStockInsumos.length === 0" class="flex flex-col items-center justify-center py-10 h-full text-slate-400 text-center">
                       <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 mb-3 text-lg">
@@ -326,60 +293,8 @@
                   </div>
                 </div>
               </div>
-
-              <!-- RECENT SALES LOG -->
-              <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in">
-                <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/10">
-                  <h3 class="text-sm font-bold text-slate-900">Ventas Recientes</h3>
-                  <button @click="currentTab = 'pos'" class="text-xs text-indigo-600 font-semibold hover:underline">Nueva Venta</button>
-                </div>
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
-                      <tr>
-                        <th class="px-6 py-3">Código de Venta</th>
-                        <th class="px-6 py-3">Fecha / Hora</th>
-                        <th class="px-6 py-3">Productos Incluidos</th>
-                        <th class="px-6 py-3 text-right">Costo Fab.</th>
-                        <th class="px-6 py-3 text-right">Monto Venta</th>
-                        <th class="px-6 py-3 text-right">Ganancia Neta</th>
-                        <th class="px-6 py-3 text-center">Factura PDF</th>
-                      </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-slate-100">
-                      <tr v-if="ventas.length === 0">
-                        <td colspan="7" class="py-8 text-center text-slate-400">
-                          No se han procesado operaciones de venta aún.
-                        </td>
-                      </tr>
-                      <tr v-for="v in sortedVentas.slice(0, 5)" :key="v.id" class="hover:bg-slate-50/80 transition duration-150">
-                        <td class="py-3 px-6 font-mono font-bold text-slate-900 text-xs">{{ v.id }}</td>
-                        <td class="py-3 px-6 text-slate-400 text-xs">{{ formatDateStrict(v.fecha) }}</td>
-                        <td class="py-3 px-6">
-                          <span v-for="(p, idx) in v.productos" :key="idx" class="inline-block bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded mr-1">
-                            {{ p.cantidad }}x {{ p.nombre }}
-                          </span>
-                        </td>
-                        <td class="py-3 px-6 text-right font-mono text-xs text-slate-400">${{ (v.total_costo || 0).toFixed(2) }}</td>
-                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-semibold">${{ (v.total_venta || 0).toFixed(2) }}</td>
-                        <td class="py-3 px-6 text-right">
-                          <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-emerald-600">
-                            +${{ (v.total_ganancia || (v.total_venta - (v.total_costo || 0))).toFixed(2) }}
-                          </span>
-                        </td>
-                        <td class="py-3 px-6 text-center">
-                          <button @click="openPdfPreview(v, 'factura')" class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition cursor-pointer mx-auto">
-                            <i class="fas fa-file-pdf text-xs"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </section>
 
-            <!-- TAB 2: INSUMOS -->
             <section v-if="currentTab === 'insumos'" class="space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -392,7 +307,6 @@
                 </button>
               </div>
 
-              <!-- SEARCH AND FILTER PANEL -->
               <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center">
                 <div class="relative w-full max-w-sm">
                   <i class="fas fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
@@ -400,7 +314,6 @@
                 </div>
               </div>
 
-              <!-- INSUMOS TABLE -->
               <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                   <table class="w-full text-left border-collapse">
@@ -466,7 +379,6 @@
               </div>
             </section>
 
-            <!-- TAB 3: CATALOGO & RECETAS -->
             <section v-if="currentTab === 'catalogo'" class="space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -479,7 +391,6 @@
                 </button>
               </div>
 
-              <!-- RECIPES GRID DISPLAY -->
               <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div v-if="productos.length === 0" class="col-span-full bg-white py-14 rounded-xl border border-slate-200 shadow-sm text-center text-slate-400">
                   <i class="fas fa-vial text-4xl mb-3 text-slate-300 block animate-pulse"></i>
@@ -488,7 +399,6 @@
                 </div>
                 
                 <div v-for="prod in productos" :key="prod.id" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition duration-200">
-                  <!-- Header specifications -->
                   <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div>
                       <h3 class="text-base font-bold text-slate-800">{{ prod.nombre }}</h3>
@@ -504,7 +414,6 @@
                     </div>
                   </div>
 
-                  <!-- Recipe Breakdown -->
                   <div class="p-5 flex-1 flex flex-col justify-between gap-4">
                     <div>
                       <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Ingredientes / Materias Primas</span>
@@ -521,7 +430,6 @@
                       </div>
                     </div>
 
-                    <!-- Cost / Margin indicators -->
                     <div class="bg-slate-50 rounded-xl p-3.5 flex flex-wrap gap-4 justify-between border border-slate-100">
                       <div>
                         <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Costo Operativo</span>
@@ -554,7 +462,6 @@
               </div>
             </section>
 
-            <!-- TAB 4: PUNTO DE VENTA (POS) -->
             <section v-if="currentTab === 'pos'" class="h-full flex flex-col space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -563,10 +470,8 @@
                 </div>
               </div>
 
-              <!-- TWO COLUMN POS: LEFT CATALOG / RIGHT CART -->
               <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 overflow-hidden min-h-[500px]">
                 
-                <!-- LEFT CATALOG (2/3 width) -->
                 <div class="xl:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
                   <div class="mb-4">
                     <div class="relative">
@@ -596,7 +501,6 @@
                   </div>
                 </div>
 
-                <!-- RIGHT CARTS (1/3 width) -->
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full justify-between">
                   <div class="overflow-y-auto flex-1 pr-1 max-h-[420px] space-y-4">
                     <h3 class="text-sm font-semibold tracking-tight text-slate-400 uppercase flex items-center justify-between">
@@ -604,7 +508,6 @@
                       <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-0.5 rounded font-mono">{{ cart.reduce((acc, i) => acc + i.cantidad, 0) }}</span>
                     </h3>
 
-                    <!-- Cart Content -->
                     <div class="space-y-3">
                       <div v-if="cart.length === 0" class="text-center text-slate-400 py-6">
                         <i class="fas fa-basket-shopping text-3xl mb-2 text-slate-300"></i>
@@ -630,7 +533,6 @@
                       </div>
                     </div>
 
-                    <!-- OPTIONAL CUSTOMER DETAILS FOR QUOTATION -->
                     <div v-if="cart.length > 0" class="border-t border-slate-100 pt-3 space-y-2">
                       <span class="text-[11px] uppercase font-bold text-slate-400 tracking-wider block"><i class="fas fa-user-tie mr-1"></i> Datos del Cliente (Opcional)</span>
                       <input v-model="posCliente.nombre" type="text" placeholder="Nombre / Banda / Empresa" class="w-full px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
@@ -641,17 +543,14 @@
                     </div>
                   </div>
 
-                  <!-- Bottom: Stock Availability Guard and Totals -->
                   <div class="border-t border-slate-100 pt-3 space-y-3 shrink-0">
                     
-                    <!-- DYNAMIC INVENTORY STOCK METRIC EVALUATOR -->
                     <div v-if="cart.length > 0" class="p-3 rounded-xl text-xs space-y-1 border" :class="isStockDeficit ? 'bg-red-50 border-red-100 text-red-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'">
                       <div class="font-semibold flex items-center gap-1.5">
                         <i class="fas" :class="isStockDeficit ? 'fa-circle-exclamation text-red-500' : 'fa-circle-check text-emerald-500'"></i>
                         {{ isStockDeficit ? 'Defecto de Insumos / Materias' : 'Suficiente Materia Prima para Manufacturar' }}
                       </div>
                       
-                      <!-- Deficit lines descriptive details -->
                       <div v-if="isStockDeficit" class="space-y-1 mt-1 border-t border-red-100/50 pt-1.5 font-mono text-[11px] leading-tight max-h-24 overflow-y-auto">
                         <div v-for="d in stockDeficitReport" :key="d.id" class="flex justify-between">
                           <span>• {{ d.nombre }}:</span>
@@ -660,7 +559,6 @@
                       </div>
                     </div>
 
-                    <!-- Money Summary -->
                     <div class="space-y-1 font-semibold text-xs leading-none">
                       <div class="flex justify-between text-slate-500">
                         <span>Costo fabric. estimado:</span>
@@ -672,15 +570,12 @@
                       </div>
                     </div>
 
-                    <!-- Actions Triggers -->
                     <div class="space-y-2">
-                      <!-- Register Trigger (Cotización) -->
                       <button @click="processCotizacion" :disabled="cart.length === 0" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs">
                         <i class="fas fa-file-invoice"></i>
                         Guardar Cotización (No descuenta stock)
                       </button>
 
-                      <!-- Register Trigger (Venta) -->
                       <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit" class="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-xs">
                         <i class="fas fa-cash-register"></i>
                         Procesar y Descontar Almacén
@@ -692,7 +587,6 @@
               </div>
             </section>
 
-            <!-- TAB 5: HISTORIAL DE COTIZACIONES -->
             <section v-if="currentTab === 'cotizaciones'" class="space-y-6">
               <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Historial de Cotizaciones</h1>
@@ -749,7 +643,6 @@
               </div>
             </section>
 
-            <!-- TAB 6: HISTORIAL DE VENTAS (FACTURAS) -->
             <section v-if="currentTab === 'facturas'" class="space-y-6">
               <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Historial de Ventas (Facturas)</h1>
@@ -803,7 +696,6 @@
               </div>
             </section>
 
-            <!-- TAB: MOVIMIENTOS -->
             <section v-if="currentTab === 'movimientos'" class="space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -862,14 +754,12 @@
               </div>
             </section>
 
-            <!-- TAB 7: CONFIGURATION / AJUSTES -->
             <section v-if="currentTab === 'config'" class="space-y-6">
               <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
                 <p class="text-slate-500 text-sm">Sincroniza bases de datos, ajusta los datos comerciales de tu empresa o reinicializa materias primas y recetas.</p>
               </div>
 
-              <!-- DATOS DE EMPRESA PARA COTIZACIONES -->
               <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
                   <div class="w-9.5 h-9.5 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 text-lg">
@@ -894,7 +784,6 @@
                 </div>
               </div>
 
-              <!-- FIREBASE INTEGRATOR MODULE -->
               <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
                   <div class="w-9.5 h-9.5 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 text-lg">
@@ -904,7 +793,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <!-- Connection Status -->
                   <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <span class="text-xs font-semibold text-slate-400 block tracking-wider uppercase">Estado de Conexión</span>
                     <div class="flex items-center gap-2.5 mt-2">
@@ -918,7 +806,6 @@
                     </p>
                   </div>
 
-                  <!-- Firebase action prompts -->
                   <div class="bg-slate-50 p-4 rounded-xl border border-slate-150 flex flex-col justify-between">
                     <div>
                       <span class="text-xs font-semibold text-slate-400 block tracking-wider uppercase">Vincular Cloud Firestore</span>
@@ -934,7 +821,6 @@
                 </div>
               </div>
 
-              <!-- SEED INITIAL DATA AND RESTORATION -->
               <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
                   <div class="w-9.5 h-9.5 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 text-lg">
@@ -958,9 +844,6 @@
         </main>
       </template>
 
-      <!-- MODALS & DIALOGS LAYERS -->
-
-      <!-- GORGEOUS PDF PREVIEW MODAL -->
       <div v-if="pdfPreviewModal.open" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center py-4 px-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[95vh] overflow-hidden">
           <div class="p-4 border-b border-slate-150 bg-slate-50 flex justify-between items-center shrink-0">
@@ -977,21 +860,17 @@
             </div>
           </div>
 
-          <!-- Document Canvas to capture for PDF -->
           <div class="p-8 overflow-y-auto flex-1 bg-slate-100 flex justify-center">
             <div id="pdf-container" class="bg-white w-[100%] max-w-[580px] p-8 shadow-sm border border-slate-200 text-slate-800 text-xs rounded-sm relative" style="font-family: 'Inter', sans-serif; line-height: 1.5;">
               
-              <!-- PDF Header Layout -->
               <div class="flex justify-between items-start border-b-2 border-indigo-600 pb-5 mb-5">
                 <div>
-                  <!-- Nuevo Header con Logo de Triqueta Lunar -->
                   <div class="flex items-center gap-3 mb-2">
                     <img src="logo.png" alt="Logo Triqueta Lunar" class="h-10 w-auto object-contain">
                     <span class="text-xl font-black tracking-tight text-slate-900 uppercase">Triqueta Lunar</span>
                   </div>
                   <p class="text-[10px] text-slate-500 font-medium">Manufactura y Diseño Personalizado</p>
                   
-                  <!-- Company Information (Optional / Configured) -->
                   <div class="mt-3 text-[10px] text-slate-400 space-y-0.5 font-mono">
                     <p v-if="empresaConfig.telefono"><i class="fas fa-phone text-slate-300 w-3"></i> {{ empresaConfig.telefono }}</p>
                     <p v-if="empresaConfig.email"><i class="fas fa-envelope text-slate-300 w-3"></i> {{ empresaConfig.email }}</p>
@@ -1008,7 +887,6 @@
                 </div>
               </div>
 
-              <!-- Client / Person Recipient Details Layout -->
               <div v-if="pdfPreviewModal.data.cliente?.nombre || pdfPreviewModal.data.cliente?.telefono || pdfPreviewModal.data.cliente?.email" class="bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-5">
                 <span class="text-[9px] uppercase font-bold text-indigo-600 tracking-wider block mb-1.5">Dirigido a:</span>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
@@ -1018,7 +896,6 @@
                 </div>
               </div>
 
-              <!-- Table Specifications items list -->
               <table class="w-full text-left mb-6 border-collapse">
                 <thead>
                   <tr class="border-b border-slate-200 text-slate-400 text-[9px] uppercase tracking-wider font-bold">
@@ -1038,7 +915,6 @@
                 </tbody>
               </table>
 
-              <!-- Totals block design -->
               <div class="flex justify-end border-t-2 border-slate-100 pt-4">
                 <div class="w-48 text-right space-y-1.5">
                   <div class="flex justify-between text-[11px] font-semibold text-slate-500">
@@ -1052,7 +928,6 @@
                 </div>
               </div>
 
-              <!-- Footer conditions metadata -->
               <div class="mt-12 text-center text-[9px] text-slate-400 border-t border-dashed border-slate-200 pt-4 font-medium leading-relaxed">
                 <span v-if="pdfPreviewModal.type === 'cotizacion'">
                   Esta cotización tiene fines meramente administrativos e informativos. Los precios reflejados están sujetos a modificaciones según la variación del coste de las materias primas necesarias para la fabricación.
@@ -1068,175 +943,6 @@
         </div>
       </div>
 
-      <!-- 1. MODAL INSUMO (ADD/EDIT) -->
-      <div v-if="insumoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
-          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
-            <h3 class="text-base font-bold text-slate-800">
-              {{ insumoModal.isEditing ? 'Editar Materia Prima' : 'Nueva Materia Prima / Insumo' }}
-            </h3>
-            <button @click="insumoModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
-              <i class="fas fa-xmark text-sm"></i>
-            </button>
-          </div>
-          
-          <div class="p-6 space-y-4">
-            <div>
-              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nombre Descriptivo</label>
-              <input v-model="insumoModal.data.nombre" type="text" placeholder="Ej. Rollo PLA Negro 1kg" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Unidad Medida</label>
-                <select v-model="insumoModal.data.unidad_medida" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer transition">
-                  <option value="gramos">gramos (g)</option>
-                  <option value="cm2">cm2 (área)</option>
-                  <option value="unidad">unidad (u)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Costo Unitario ($)</label>
-                <input v-model.number="insumoModal.data.costo_por_unidad" type="number" step="0.0001" placeholder="0.025" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Stock Almacén</label>
-                <input v-model.number="insumoModal.data.stock_actual" type="number" placeholder="1000" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-              </div>
-
-              <div>
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Stock Mínimo</label>
-                <input v-model.number="insumoModal.data.stock_minimo" type="number" placeholder="200" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-              </div>
-            </div>
-          </div>
-
-          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-end gap-3.5">
-            <button @click="insumoModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
-              Cancelar
-            </button>
-            <button @click="saveInsumo" class="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/15 cursor-pointer transition">
-              Guardar Insumo
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. MODAL PRODUCTO / RECETA DESIGNER (ADD/EDIT) -->
-      <div v-if="productoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
-            <h3 class="text-base font-bold text-slate-800">
-              {{ productoModal.isEditing ? 'Editar Producto / Receta' : 'Diseñar Nuevo Producto' }}
-            </h3>
-            <button @click="productoModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
-              <i class="fas fa-xmark text-sm"></i>
-            </button>
-          </div>
-
-          <!-- Modal Body Scrollable -->
-          <div class="p-6 overflow-y-auto space-y-4 flex-1">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="sm:col-span-2">
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nombre Comercial</label>
-                <input v-model="productoModal.data.nombre" type="text" placeholder="Ej. Dragón 3D de Articulación" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
-              </div>
-              <div>
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Costo Operativo ($)</label>
-                <input v-model.number="productoModal.data.costo_operativo" type="number" step="0.01" placeholder="2.00" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Precio de Venta Sugerido ($)</label>
-                <input v-model.number="productoModal.data.precio_venta" type="number" step="0.01" placeholder="15.00" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-              </div>
-              <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-150 flex items-center justify-between text-xs font-semibold leading-none self-end">
-                <div>
-                  <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Margen de Ganancia</span>
-                  <span class="text-sm font-extrabold text-indigo-600 font-mono inline-block mt-1">
-                    ${{ (productoModal.data.precio_venta - modalCalculatedTotalCost).toFixed(2) }} 
-                    ({{ modalCalculatedProfitPercent.toFixed(0) }}%)
-                  </span>
-                </div>
-                <div>
-                  <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Costo Total</span>
-                  <span class="text-sm font-extrabold text-slate-800 font-mono inline-block mt-1">${{ modalCalculatedTotalCost.toFixed(2) }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- RECIPE CREATOR SUITE -->
-            <div class="border-t border-slate-150 pt-4 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Composición / Consumo de Insumos</span>
-                <button @click="addInsumoToRecipe" class="py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-100 transition">
-                  <i class="fas fa-plus"></i>
-                  Añadir Línea de Insumo
-                </button>
-              </div>
-
-              <!-- List ingredients in recipe -->
-              <div class="space-y-3">
-                <div v-if="productoModal.data.receta.length === 0" class="p-6 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs">
-                  Aún no has agregado materias primas a esta formulación. El producto no incurrirá en consumos.
-                </div>
-                
-                <div v-for="(rec, idx) in productoModal.data.receta" :key="idx" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-50 border border-slate-100 p-3 rounded-2xl relative">
-                  <!-- Select raw ingredient dropdown -->
-                  <div class="flex-1">
-                    <label class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Materia Prima</label>
-                    <select v-model="rec.insumoId" class="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded-lg text-xs cursor-pointer">
-                      <option value="" disabled>Selecciona insumo...</option>
-                      <option v-for="ins in insumos" :key="ins.id" :value="ins.id">
-                        {{ ins.nombre }} (${{ ins.costo_por_unidad }}/{{ ins.unidad_medida }})
-                      </option>
-                    </select>
-                  </div>
-
-                  <!-- Enter required quantity -->
-                  <div class="w-32">
-                    <label class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Cantidad</label>
-                    <div class="relative flex items-center">
-                      <input v-model.number="rec.cantidad" type="number" class="w-full pl-2.5 pr-8 py-1.5 border border-slate-200 bg-white rounded-lg text-xs font-mono">
-                      <span class="absolute right-2 px-1 py-0.5 bg-slate-100 text-[10px] text-slate-400 font-semibold rounded pointer-events-none">
-                        {{ getInsumoMedida(rec.insumoId) || '-' }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="w-20 text-right pr-2">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Subcosto</span>
-                    <span class="text-xs font-mono font-bold text-slate-700">
-                      ${{ (rec.cantidad * getInsumoCostoUnit(rec.insumoId)).toFixed(2) }}
-                    </span>
-                  </div>
-
-                  <button @click="removeInsumoFromRecipe(idx)" class="w-8 h-8 rounded bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs cursor-pointer self-end sm:self-auto">
-                    <i class="fas fa-trash-can"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-end gap-3.5">
-            <button @click="productoModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
-              Cancelar
-            </button>
-            <button @click="saveProducto" class="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/15 cursor-pointer transition">
-              Guardar Receta / Producto
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. MODAL MOVIMIENTOS -->
       <div v-if="movimientoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
           <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
@@ -1287,7 +993,6 @@
         </div>
       </div>
 
-      <!-- 3. CONFIGURATION MODAL FIREBASE API KEYS -->
       <div v-if="firebaseSetupModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
           <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
@@ -1326,13 +1031,11 @@
 
     </div>
 
-    <!-- MAIN APP CODE IN VUE 3 COMPOSITION API -->
     <script>
-      const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+      const { createApp, ref, reactive, computed, onMounted } = Vue;
 
       createApp({
         setup() {
-          // Tabs structure including Cotizaciones History and Facturas
           const tabs = [
             { id: 'dashboard', name: 'Dashboard', icon: 'fa-chart-pie' },
             { id: 'insumos', name: 'En almacén (Insumos)', icon: 'fa-box-open' },
@@ -1344,7 +1047,6 @@
             { id: 'config', name: 'Ajustes', icon: 'fa-gears' },
           ];
 
-          // UI state indicators
           const currentTab = ref('dashboard');
           const mobileMenuOpen = ref(false);
           const appLoading = ref(true);
@@ -1354,32 +1056,27 @@
           const isDemoMode = ref(true);
           const user = ref(null);
 
-          // Real-time synchronization models
           const insumos = ref([]);
           const productos = ref([]);
           const ventas = ref([]);
           const cotizaciones = ref([]);
           const movimientos = ref([]);
 
-          // Form Search Queries
           const insumoSearchQuery = ref('');
           const posSearchQuery = ref('');
           const dateFilter = ref('current_month');
 
-          // Company configurations loaded from localStorage
           const empresaConfig = reactive({
             telefono: localStorage.getItem('manuf_empresa_telefono') || '',
             email: localStorage.getItem('manuf_empresa_email') || ''
           });
 
-          // POS Optional Client details fields
           const posCliente = reactive({
             nombre: '',
             telefono: '',
             email: ''
           });
 
-          // Core models for editing modals
           const insumoModal = reactive({
             open: false,
             isEditing: false,
@@ -1402,17 +1099,14 @@
             configString: ''
           });
 
-          // PDF Model supports both Cotizacion and Factura layouts
           const pdfPreviewModal = reactive({
             open: false,
-            type: 'cotizacion', // 'cotizacion' or 'factura'
+            type: 'cotizacion',
             data: { id: '', fecha: '', productos: [], total_cotizado: 0, total_venta: 0, cliente: {} }
           });
 
-          // Point of Sale Cart Status Array
           const cart = ref([]);
 
-          // DYNAMIC DEMO STATIC PREMADE DATA FOR INMEDIATE PLAYGROUND
           const demoInsumos = [
             { id: 'pla_neg', nombre: 'Filamento PLA Eco Negro', unidad_medida: 'gramos', costo_por_unidad: 0.025, stock_actual: 1450, stock_minimo: 350 },
             { id: 'pla_roj', nombre: 'Filamento PLA Eco Rojo', unidad_medida: 'gramos', costo_por_unidad: 0.025, stock_actual: 920, stock_minimo: 300 },
@@ -1479,7 +1173,6 @@
             }
           ];
 
-          // COMPUTED INITIALS FOR GUEST USERS
           const userInitials = computed(() => {
             if (user.value && user.value.displayName) {
               return user.value.displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -1487,14 +1180,12 @@
             return 'FI';
           });
 
-          // FORMAT AND RENDER RECENT DATES
           function formatDate(isoStr) {
             if (!isoStr) return '';
             const d = new Date(isoStr);
             return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           }
 
-          // STRICT DATE FORMAT DD/MM/YYYY
           function formatDateStrict(isoStr) {
             if (!isoStr) return '';
             const d = new Date(isoStr);
@@ -1504,7 +1195,6 @@
             return `${day}/${month}/${year}`;
           }
 
-          // GENERATE SEQUENTIAL ID
           function getNextId(collectionArray, prefix) {
             if (!collectionArray || collectionArray.length === 0) return `${prefix}-0001`;
             let max = 0;
@@ -1518,20 +1208,18 @@
             return `${prefix}-${String(max + 1).padStart(4, '0')}`;
           }
 
-          // SAVE COMPANY METADATA
           function saveEmpresaConfig() {
             localStorage.setItem('manuf_empresa_telefono', empresaConfig.telefono);
             localStorage.setItem('manuf_empresa_email', empresaConfig.email);
             alert("Información comercial de la empresa guardada exitosamente.");
           }
 
-          // INIT APPS & RECONSTRUCT SEED DATA
           onMounted(() => {
             initializePlatform();
           });
 
-          // FILTER DASHBOARD VENTAS
           const filteredDashboardVentas = computed(() => {
+            if (dateFilter.value === 'all') return ventas.value;
             const now = new Date();
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
@@ -1551,11 +1239,12 @@
               } else if (dateFilter.value === 'this_year') {
                 return vDate.getFullYear() === currentYear;
               }
-              return true; // 'all'
+              return true;
             });
           });
 
-                    const filteredDashboardMovimientos = computed(() => {
+          const filteredDashboardMovimientos = computed(() => {
+            if (dateFilter.value === 'all') return movimientos.value;
             const now = new Date();
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
@@ -1575,11 +1264,10 @@
               } else if (dateFilter.value === 'this_year') {
                 return mDate.getFullYear() === currentYear;
               }
-              return true; // 'all'
+              return true;
             });
           });
 
-          // METRIC DYNAMIC COMPILATION
           const metrics = computed(() => {
             let totalSales = 0;
             let totalCost = 0;
@@ -1613,12 +1301,15 @@
               totalPersonal
             };
           });
-          // SORT VENTAS DOWNWARD BY CHRONOLOGY
+
           const sortedVentas = computed(() => {
             return [...ventas.value].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
           });
 
-          // LOW STOCK COMPILER WARNING SIGNALS
+          const sortedMovimientos = computed(() => {
+            return [...movimientos.value].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+          });
+
           const lowStockInsumos = computed(() => {
             return insumos.value.filter(ins => {
               const th = ins.stock_minimo !== undefined ? ins.stock_minimo : 10;
@@ -1628,7 +1319,6 @@
 
           const lowStockCount = computed(() => lowStockInsumos.value.length);
 
-          // RECIPES DYNAMIC COMPUTED RECALCULATIONS
           function getInsumoName(id) {
             const matchIndex = insumos.value.find(i => i.id === id);
             return matchIndex ? matchIndex.nombre : '(Insumo Desconocido)';
@@ -1664,21 +1354,18 @@
             return ((prod.precio_venta - cost) / prod.precio_venta) * 100;
           }
 
-          // FILTER RAW INSUMOS LIST WITH INPUT
           const filteredInsumos = computed(() => {
             if (!insumoSearchQuery.value.trim()) return insumos.value;
             const q = insumoSearchQuery.value.toLowerCase();
             return insumos.value.filter(i => i.nombre.toLowerCase().includes(q) || i.id.toLowerCase().includes(q));
           });
 
-          // FILTER COMMERCIAL POS LIST
           const filteredPOSProducts = computed(() => {
             if (!posSearchQuery.value.trim()) return productos.value;
             const q = posSearchQuery.value.toLowerCase();
             return productos.value.filter(p => p.nombre.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
           });
 
-          // POPULATE LIVE RECIPE FORM DETAILS IN MODAL INSIDE MODAL EDIT PANEL
           const modalCalculatedTotalCost = computed(() => {
             const dataObj = productoModal.data;
             const op = Number(dataObj.costo_operativo) || 0;
@@ -1695,7 +1382,6 @@
             return ((dataObj.precio_venta - cost) / dataObj.precio_venta) * 100;
           });
 
-          // CART PROPERTY ACCESS METHODS
           function getProductoName(id) {
             const matchIndex = productos.value.find(p => p.id === id);
             return matchIndex ? matchIndex.nombre : '';
@@ -1706,7 +1392,6 @@
             return matchIndex ? Number(matchIndex.precio_venta) : 0;
           }
 
-          // CART SUMMARY CALCULATIONS
           const cartPriceTotal = computed(() => {
             return cart.value.reduce((sum, item) => sum + (getProductoPrice(item.productoId) * item.cantidad), 0);
           });
@@ -1719,7 +1404,6 @@
             }, 0);
           });
 
-          // STOCK AVAILABILITY CHECK ENFORCER
           const consolidatedCartRequiredIngredients = computed(() => {
             const required = {};
             cart.value.forEach(item => {
@@ -1734,7 +1418,6 @@
             return required;
           });
 
-          // GENERATE REPORT LISTING STOCK SHORTAGES IF ANY
           const stockDeficitReport = computed(() => {
             const req = consolidatedCartRequiredIngredients.value;
             const deficitList = [];
@@ -1760,7 +1443,6 @@
 
           const isStockDeficit = computed(() => stockDeficitReport.value.length > 0);
 
-          // POS ACTIONS
           function addToCart(prod) {
             const existingItem = cart.value.find(i => i.productoId === prod.id);
             if (existingItem) {
@@ -1789,512 +1471,7 @@
             cart.value = cart.value.filter(i => i.productoId !== id);
           }
 
-          // PLATFORM CONTROLLER BOOTSTRAPPING
-          async function initializePlatform() {
-            appLoading.value = true;
-            try {
-              const firebaseConfig = {
-                apiKey: "AIzaSyAePr6qzWR-byXiQ9QMOeqsPKW-iXwmEWQ",
-                authDomain: "gestor-de-triqueta-lunar.firebaseapp.com",
-                projectId: "gestor-de-triqueta-lunar",
-                storageBucket: "gestor-de-triqueta-lunar.firebasestorage.app",
-                messagingSenderId: "1062349027171",
-                appId: "1:1062349027171:web:5c9ed3792975f243a14556"
-              };
-              
-              if (firebase.apps.length === 0) {
-                firebase.initializeApp(firebaseConfig);
-              }
-              
-              db.value = firebase.firestore();
-              auth.value = firebase.auth();
-              isDemoMode.value = false;
-              
-              auth.value.onAuthStateChanged(async (usr) => {
-                if (usr) {
-                  try {
-                    // Verificación de seguridad profesional:
-                    // Intentamos leer 1 documento. Si Firestore nos rechaza (por las reglas),
-                    // el usuario no está autorizado. No hay correos hardcodeados en el frontend.
-                    await db.value.collection('insumos').limit(1).get();
-                    
-                    user.value = usr;
-                    isGuestMode.value = false;
-                    subscribeToFirestore();
-                  } catch (err) {
-                    // Si el servidor rechaza la conexión (Permisos insuficientes)
-                    auth.value.signOut();
-                    user.value = null;
-                    alert("Acceso denegado. No tienes autorización en el servidor de Triqueta Lunar.");
-                  }
-                } else {
-                  user.value = null;
-                  insumos.value = [];
-                  productos.value = [];
-                  ventas.value = [];
-                  cotizaciones.value = [];
-                  movimientos.value = [];
-                }
-                appLoading.value = false;
-              });
-              
-            } catch (err) {
-              console.error("Firebase startup error:", err);
-              setOfflineFallback();
-            }
-          }
-
-          function setOfflineFallback() {
-            isDemoMode.value = true;
-            db.value = null;
-            auth.value = null;
-            user.value = null;
-            
-            const localIns = localStorage.getItem('manuf_insumos');
-            const localProds = localStorage.getItem('manuf_productos');
-            const localVents = localStorage.getItem('manuf_ventas');
-            const localQuotes = localStorage.getItem('manuf_cotizaciones');
-            const localMovs = localStorage.getItem('manuf_movimientos');
-
-            if (localIns && localProds && localVents && localQuotes && localMovs) {
-              insumos.value = JSON.parse(localIns);
-              productos.value = JSON.parse(localProds);
-              ventas.value = JSON.parse(localVents);
-              cotizaciones.value = JSON.parse(localQuotes);
-              movimientos.value = JSON.parse(localMovs);
-            } else {
-              insumos.value = JSON.parse(JSON.stringify(demoInsumos));
-              productos.value = JSON.parse(JSON.stringify(demoProductos));
-              ventas.value = JSON.parse(JSON.stringify(demoVentas));
-              cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
-              movimientos.value = [];
-              persistLocalData();
-            }
-            appLoading.value = false;
-          }
-
-          function persistLocalData() {
-            localStorage.setItem('manuf_insumos', JSON.stringify(insumos.value));
-            localStorage.setItem('manuf_productos', JSON.stringify(productos.value));
-            localStorage.setItem('manuf_ventas', JSON.stringify(ventas.value));
-            localStorage.setItem('manuf_cotizaciones', JSON.stringify(cotizaciones.value));
-            localStorage.setItem('manuf_movimientos', JSON.stringify(movimientos.value));
-          }
-
-          // FIRESTORE SUBSCRIPTIONS
-          let unsubscribeInsumos = null;
-          let unsubscribeProductos = null;
-          let unsubscribeVentas = null;
-          let unsubscribeMovimientos = db.value.collection('movimientos').onSnapshot(snap => {
-              const list = [];
-              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-              movimientos.value = list;
-            }, err => console.error(err));
-
-            unsubscribeCotizaciones = null;
-          let unsubscribeMovimientos = null;
-
-          function subscribeToFirestore() {
-            if (!db.value || !user.value) return;
-
-            unsubscribeInsumos = db.value.collection('insumos').onSnapshot(snap => {
-              const list = [];
-              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-              insumos.value = list;
-              if (insumos.value.length === 0) {
-                demoInsumos.forEach(item => db.value.collection('insumos').doc(item.id).set(item));
-              }
-            }, err => console.error(err));
-
-            unsubscribeProductos = db.value.collection('productos').onSnapshot(snap => {
-              const list = [];
-              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-              productos.value = list;
-              if (productos.value.length === 0) {
-                demoProductos.forEach(item => db.value.collection('productos').doc(item.id).set(item));
-              }
-            }, err => console.error(err));
-
-            unsubscribeVentas = db.value.collection('ventas').onSnapshot(snap => {
-              const list = [];
-              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-              ventas.value = list;
-              if (ventas.value.length === 0) {
-                demoVentas.forEach(item => db.value.collection('ventas').doc(item.id).set(item));
-              }
-            }, err => console.error(err));
-
-            unsubscribeCotizaciones = db.value.collection('cotizaciones').onSnapshot(snap => {
-              const list = [];
-              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-              cotizaciones.value = list;
-              if (cotizaciones.value.length === 0) {
-                demoCotizaciones.forEach(item => db.value.collection('cotizaciones').doc(item.id).set(item));
-              }
-            }, err => alert('Fallo de lectura en Cotizaciones: ' + err.message));
-          }
-
-          function clearFirestoreSubscriptions() {
-            if (unsubscribeInsumos) unsubscribeInsumos();
-            if (unsubscribeProductos) unsubscribeProductos();
-            if (unsubscribeVentas) unsubscribeVentas();
-            if (unsubscribeCotizaciones) unsubscribeCotizaciones();
-            if (unsubscribeMovimientos) unsubscribeMovimientos();
-          }
-
-          // GOOGLE SIGN IN POPUP
-          async function signInWithGoogle() {
-            if (!auth.value) {
-              alert("Por favor configure Firebase en Ajustes antes de autenticarse.");
-              currentTab.value = 'config';
-              return;
-            }
-            try {
-              appLoading.value = true;
-              const provider = new firebase.auth.GoogleAuthProvider();
-              await auth.value.signInWithPopup(provider);
-            } catch (err) {
-              console.warn("Aviso de Firebase Auth (Ignorable si inició sesión): " + err.message);
-              appLoading.value = false;
-            }
-          }
-
-          function enterGuestMode() {
-            isGuestMode.value = true;
-            initializePlatform();
-          }
-
-          function logout() {
-            if (auth.value) {
-              auth.value.signOut();
-            }
-            clearFirestoreSubscriptions();
-            isGuestMode.value = false;
-            user.value = null;
-            initializePlatform();
-          }
-
-          // INSUMO CRUD TRIGGER
-          function openInsumoModal(insumo = null) {
-            if (insumo) {
-              insumoModal.isEditing = true;
-              insumoModal.data = JSON.parse(JSON.stringify(insumo));
-            } else {
-              insumoModal.isEditing = false;
-              insumoModal.data = {
-                id: 'ins_' + Date.now().toString(36),
-                nombre: '',
-                unidad_medida: 'gramos',
-                costo_por_unidad: 0.025,
-                stock_actual: 500,
-                stock_minimo: 100
-              };
-            }
-            insumoModal.open = true;
-          }
-
-          async function saveInsumo() {
-            const data = insumoModal.data;
-            if (!data.nombre || !data.unidad_medida || data.costo_por_unidad <= 0 || data.stock_actual < 0) {
-              alert("Por favor rellene todos los campos con valores positivos correctos.");
-              return;
-            }
-
-            if (isDemoMode.value) {
-              if (insumoModal.isEditing) {
-                const idx = insumos.value.findIndex(i => i.id === data.id);
-                if (idx !== -1) insumos.value[idx] = data;
-              } else {
-                insumos.value.push(data);
-              }
-              persistLocalData();
-              insumoModal.open = false;
-            } else {
-              try {
-                appLoading.value = true;
-                await db.value.collection('insumos').doc(data.id).set(data);
-                insumoModal.open = false;
-              } catch (err) {
-                alert("Error guardando ingrediente en Firestore: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-          async function confirmDeleteInsumo(insumo) {
-            const res = confirm(`¿Estás seguro de que deseas eliminar la materia prima "${insumo.nombre}"? Esto podría alterar productos que la requieran.`);
-            if (!res) return;
-
-            if (isDemoMode.value) {
-              insumos.value = insumos.value.filter(i => i.id !== insumo.id);
-              persistLocalData();
-            } else {
-              try {
-                appLoading.value = true;
-                await db.value.collection('insumos').doc(insumo.id).delete();
-              } catch (err) {
-                alert("Error al borrar de Firestore: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-          // CATALOGUE PRODUCT RECIPE CRUD
-          function openProductoModal(prod = null) {
-            if (prod) {
-              productoModal.isEditing = true;
-              productoModal.data = JSON.parse(JSON.stringify(prod));
-            } else {
-              productoModal.isEditing = false;
-              productoModal.data = {
-                id: 'prod_' + Date.now().toString(36),
-                nombre: '',
-                precio_venta: 15.00,
-                costo_operativo: 2.00,
-                receta: []
-              };
-            }
-            productoModal.open = true;
-          }
-
-          function addInsumoToRecipe() {
-            productoModal.data.receta.push({ insumoId: '', cantidad: 0 });
-          }
-
-          function removeInsumoFromRecipe(idx) {
-            productoModal.data.receta.splice(idx, 1);
-          }
-
-          async function saveProducto() {
-            const data = productoModal.data;
-            if (!data.nombre || data.precio_venta <= 0 || data.costo_operativo < 0) {
-              alert("Por favor introduzca especificaciones de precio y costo válidas.");
-              return;
-            }
-
-            const hasEmptyItems = data.receta.some(r => !r.insumoId || r.cantidad <= 0);
-            if (hasEmptyItems) {
-              alert("Asegúrese de definir la materia prima y cantidades positivos para cada línea de la receta.");
-              return;
-            }
-
-            if (isDemoMode.value) {
-              if (productoModal.isEditing) {
-                const idx = productos.value.findIndex(p => p.id === data.id);
-                if (idx !== -1) productos.value[idx] = data;
-              } else {
-                productos.value.push(data);
-              }
-              persistLocalData();
-              productoModal.open = false;
-            } else {
-              try {
-                appLoading.value = true;
-                await db.value.collection('productos').doc(data.id).set(data);
-                productoModal.open = false;
-              } catch (err) {
-                alert("Error al persistir producto formulado: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-          async function confirmDeleteProducto(prod) {
-            const ans = confirm(`¿Borrar el producto "${prod.nombre}" del catálogo?`);
-            if (!ans) return;
-
-            if (isDemoMode.value) {
-              productos.value = productos.value.filter(p => p.id !== prod.id);
-              persistLocalData();
-            } else {
-              try {
-                appLoading.value = true;
-                await db.value.collection('productos').doc(prod.id).delete();
-              } catch (err) {
-                alert("Error de descarte: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-          // SAVING COTIZACIONES (WITHOUT TOUCHING ALMACEN RAW INVENTORY STOCK)
-          async function processCotizacion() {
-            if (cart.value.length === 0) return;
-
-            const currentId = getNextId(cotizaciones.value, 'COT');
-            
-            const recProducts = cart.value.map(item => {
-              const baseValue = productos.value.find(p => p.id === item.productoId);
-              return {
-                id: item.productoId,
-                nombre: baseValue.nombre,
-                precio_venta: baseValue.precio_venta,
-                cantidad: item.cantidad
-              };
-            });
-
-            const quoteDoc = {
-              id: currentId,
-              fecha: new Date().toISOString(),
-              productos: recProducts,
-              total_cotizado: cartPriceTotal.value,
-              total_costo_estimado: cartCostTotal.value,
-              cliente: {
-                nombre: posCliente.nombre.trim(),
-                telefono: posCliente.telefono.trim(),
-                email: posCliente.email.trim()
-              }
-            };
-
-            if (isDemoMode.value) {
-              cotizaciones.value.push(quoteDoc);
-              persistLocalData();
-              cart.value = [];
-              posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-              alert(`¡Cotización local guardada! Código: ${currentId}.`);
-              currentTab.value = 'cotizaciones';
-            } else {
-              try {
-                appLoading.value = true;
-                await db.value.collection('cotizaciones').doc(currentId).set(quoteDoc);
-                cart.value = [];
-                posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-                alert(`¡Cotización cloud registrada! Código: ${currentId}. (Inventario intacto).`);
-                currentTab.value = 'cotizaciones';
-              } catch (err) {
-                alert("Error guardando cotización en Firestore: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-          // REMOVE A SAVED QUOTATION DOCUMENT
-          async function deleteCotizacion(id) {
-            const c = confirm("¿Estás seguro de descartar esta cotización del registro?");
-            if (!c) return;
-
-            if (isDemoMode.value) {
-              cotizaciones.value = cotizaciones.value.filter(q => q.id !== id);
-              persistLocalData();
-            } else {
-              try {
-                appLoading.value = true;
-                await db.value.collection('cotizaciones').doc(id).delete();
-              } catch (err) {
-                alert("Error eliminando cotización: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-          // SHOW THE PDF PREVIEW MODAL CANVAS LAYOUT
-          function openPdfPreview(doc, type = 'cotizacion') {
-            pdfPreviewModal.type = type;
-            pdfPreviewModal.data = JSON.parse(JSON.stringify(doc));
-            pdfPreviewModal.open = true;
-          }
-
-          // EXPORT HTML ELEMENT CANVAS LAYOUT TO LOCAL DEVICE STORAGE AS A BEAUTIFUL PDF
-          function downloadPdf() {
-            const element = document.getElementById('pdf-container');
-            const prefix = pdfPreviewModal.type === 'factura' ? 'Factura' : 'Cotizacion';
-            const options = {
-              margin: 10,
-              filename: `${prefix}_${pdfPreviewModal.data.id || 'TriquetaLunar'}.pdf`,
-              image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { scale: 2, useCORS: true },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            
-            html2pdf().set(options).from(element).save();
-          }
-
-          // PROCESSING POS SALES TRANSACTION (DECREMENTS RAW STOCK ATOMICALLY)
-          async function processSalesCheckout() {
-            if (cart.value.length === 0) return;
-            if (isStockDeficit.value) {
-              alert("No se puede registrar la venta. No hay suficiente abastecimiento de materias primas en el almacén.");
-              return;
-            }
-
-            const currentId = getNextId(ventas.value, 'FAC');
-            
-            const recProducts = cart.value.map(item => {
-              const baseValue = productos.value.find(p => p.id === item.productoId);
-              return {
-                id: item.productoId,
-                nombre: baseValue.nombre,
-                precio_venta: baseValue.precio_venta,
-                cantidad: item.cantidad
-              };
-            });
-
-            const salesDoc = {
-              id: currentId,
-              fecha: new Date().toISOString(),
-              productos: recProducts,
-              total_venta: cartPriceTotal.value,
-              total_costo: cartCostTotal.value,
-              total_ganancia: cartPriceTotal.value - cartCostTotal.value,
-              cliente: {
-                nombre: posCliente.nombre.trim(),
-                telefono: posCliente.telefono.trim(),
-                email: posCliente.email.trim()
-              }
-            };
-
-            if (isDemoMode.value) {
-              const consolidations = consolidatedCartRequiredIngredients.value;
-              
-              Object.keys(consolidations).forEach(insId => {
-                const ism = insumos.value.find(i => i.id === insId);
-                if (ism) {
-                  ism.stock_actual = Math.max(0, ism.stock_actual - consolidations[insId]);
-                }
-              });
-
-              ventas.value.push(salesDoc);
-              persistLocalData();
-              cart.value = [];
-              posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-              alert(`¡Venta procesada con éxito! Factura #${currentId} generada. Almacén actualizado.`);
-              currentTab.value = 'dashboard';
-            } else {
-              try {
-                appLoading.value = true;
-                const consolidations = consolidatedCartRequiredIngredients.value;
-                const batch = db.value.batch();
-
-                const salesRef = db.value.collection('ventas').doc(currentId);
-                batch.set(salesRef, salesDoc);
-
-                Object.keys(consolidations).forEach(insId => {
-                  const itemRef = db.value.collection('insumos').doc(insId);
-                  batch.update(itemRef, {
-                    stock_actual: firebase.firestore.FieldValue.increment(-consolidations[insId])
-                  });
-                });
-
-                await batch.commit();
-                cart.value = [];
-                posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-                alert(`¡Venta transaccional registrada! Código: ${currentId}. El inventario Firestore descontado.`);
-                currentTab.value = 'dashboard';
-              } catch (err) {
-                alert("Error procesando transacción en Cloud: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
-            }
-          }
-
-                    function openMovimientoModal() {
+          function openMovimientoModal() {
             movimientoModal.data = { tipo: 'merma', insumoId: '', cantidad: null, notas: '' };
             movimientoModal.open = true;
           }
@@ -2390,11 +1567,497 @@
             }
           }
 
-          const sortedMovimientos = computed(() => {
-            return [...movimientos.value].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-          });
+          async function initializePlatform() {
+            appLoading.value = true;
+            try {
+              const savedConfig = localStorage.getItem('manuf_firebase_config');
+              if (savedConfig) {
+                const parsed = JSON.parse(savedConfig);
+                firebaseSetupModal.configString = savedConfig;
+                
+                if (firebase.apps.length === 0) {
+                  firebase.initializeApp(parsed);
+                }
+                
+                db.value = firebase.firestore();
+                auth.value = firebase.auth();
+                isDemoMode.value = false;
+                
+                auth.value.onAuthStateChanged(async (usr) => {
+                  if (usr) {
+                    try {
+                      // Verificación de seguridad (El Backend decide)
+                      await db.value.collection('insumos').limit(1).get();
+                      
+                      user.value = usr;
+                      isGuestMode.value = false;
+                      subscribeToFirestore();
+                    } catch (err) {
+                      auth.value.signOut();
+                      user.value = null;
+                      alert("Acceso denegado. No tienes autorización en el servidor de Triqueta Lunar.");
+                    }
+                  } else {
+                    user.value = null;
+                    insumos.value = [];
+                    productos.value = [];
+                    ventas.value = [];
+                    cotizaciones.value = [];
+                    movimientos.value = [];
+                  }
+                  appLoading.value = false;
+                });
+                
+              } else {
+                setOfflineFallback();
+              }
+            } catch (err) {
+              console.error("Firebase startup error:", err);
+              setOfflineFallback();
+            }
+          }
 
-          // FIREBASE CONFIGURATION STORAGE SETTINGS
+          function setOfflineFallback() {
+            isDemoMode.value = true;
+            db.value = null;
+            auth.value = null;
+            user.value = null;
+            
+            const localIns = localStorage.getItem('manuf_insumos');
+            const localProds = localStorage.getItem('manuf_productos');
+            const localVents = localStorage.getItem('manuf_ventas');
+            const localQuotes = localStorage.getItem('manuf_cotizaciones');
+            const localMovs = localStorage.getItem('manuf_movimientos');
+
+            if (localIns && localProds && localVents && localQuotes && localMovs) {
+              insumos.value = JSON.parse(localIns);
+              productos.value = JSON.parse(localProds);
+              ventas.value = JSON.parse(localVents);
+              cotizaciones.value = JSON.parse(localQuotes);
+              movimientos.value = JSON.parse(localMovs);
+            } else {
+              insumos.value = JSON.parse(JSON.stringify(demoInsumos));
+              productos.value = JSON.parse(JSON.stringify(demoProductos));
+              ventas.value = JSON.parse(JSON.stringify(demoVentas));
+              cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
+              movimientos.value = [];
+              persistLocalData();
+            }
+            appLoading.value = false;
+          }
+
+          function persistLocalData() {
+            localStorage.setItem('manuf_insumos', JSON.stringify(insumos.value));
+            localStorage.setItem('manuf_productos', JSON.stringify(productos.value));
+            localStorage.setItem('manuf_ventas', JSON.stringify(ventas.value));
+            localStorage.setItem('manuf_cotizaciones', JSON.stringify(cotizaciones.value));
+            localStorage.setItem('manuf_movimientos', JSON.stringify(movimientos.value));
+          }
+
+          let unsubscribeInsumos = null;
+          let unsubscribeProductos = null;
+          let unsubscribeVentas = null;
+          let unsubscribeCotizaciones = null;
+          let unsubscribeMovimientos = null;
+
+          function subscribeToFirestore() {
+            if (!db.value || !user.value) return;
+
+            unsubscribeInsumos = db.value.collection('insumos').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              insumos.value = list;
+              if (insumos.value.length === 0) {
+                demoInsumos.forEach(item => db.value.collection('insumos').doc(item.id).set(item));
+              }
+            }, err => alert('Fallo de lectura en Insumos: ' + err.message));
+
+            unsubscribeProductos = db.value.collection('productos').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              productos.value = list;
+              if (productos.value.length === 0) {
+                demoProductos.forEach(item => db.value.collection('productos').doc(item.id).set(item));
+              }
+            }, err => alert('Fallo de lectura en Productos: ' + err.message));
+
+            unsubscribeVentas = db.value.collection('ventas').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              ventas.value = list;
+              if (ventas.value.length === 0) {
+                demoVentas.forEach(item => db.value.collection('ventas').doc(item.id).set(item));
+              }
+            }, err => alert('Fallo de lectura en Ventas: ' + err.message));
+
+            unsubscribeCotizaciones = db.value.collection('cotizaciones').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              cotizaciones.value = list;
+              if (cotizaciones.value.length === 0) {
+                demoCotizaciones.forEach(item => db.value.collection('cotizaciones').doc(item.id).set(item));
+              }
+            }, err => console.error('Fallo de lectura en Cotizaciones: ' + err.message));
+
+            unsubscribeMovimientos = db.value.collection('movimientos').onSnapshot(snap => {
+              const list = [];
+              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+              movimientos.value = list;
+            }, err => console.error('Fallo de lectura en Movimientos: ' + err.message));
+          }
+
+          function clearFirestoreSubscriptions() {
+            if (unsubscribeInsumos) unsubscribeInsumos();
+            if (unsubscribeProductos) unsubscribeProductos();
+            if (unsubscribeVentas) unsubscribeVentas();
+            if (unsubscribeCotizaciones) unsubscribeCotizaciones();
+            if (unsubscribeMovimientos) unsubscribeMovimientos();
+          }
+
+          async function signInWithGoogle() {
+            if (!auth.value) {
+              alert("Por favor configure Firebase en Ajustes antes de autenticarse.");
+              currentTab.value = 'config';
+              return;
+            }
+            try {
+              appLoading.value = true;
+              const provider = new firebase.auth.GoogleAuthProvider();
+              await auth.value.signInWithPopup(provider);
+            } catch (err) {
+              console.warn("Aviso de Firebase Auth: " + err.message);
+              appLoading.value = false;
+            }
+          }
+
+          function enterGuestMode() {
+            isGuestMode.value = true;
+            initializePlatform();
+          }
+
+          function logout() {
+            if (auth.value) {
+              auth.value.signOut();
+            }
+            clearFirestoreSubscriptions();
+            isGuestMode.value = false;
+            user.value = null;
+            initializePlatform();
+          }
+
+          function openInsumoModal(insumo = null) {
+            if (insumo) {
+              insumoModal.isEditing = true;
+              insumoModal.data = JSON.parse(JSON.stringify(insumo));
+            } else {
+              insumoModal.isEditing = false;
+              insumoModal.data = {
+                id: 'ins_' + Date.now().toString(36),
+                nombre: '',
+                unidad_medida: 'gramos',
+                costo_por_unidad: 0.025,
+                stock_actual: 500,
+                stock_minimo: 100
+              };
+            }
+            insumoModal.open = true;
+          }
+
+          async function saveInsumo() {
+            const data = insumoModal.data;
+            if (!data.nombre || !data.unidad_medida || data.costo_por_unidad <= 0 || data.stock_actual < 0) {
+              alert("Por favor rellene todos los campos con valores positivos correctos.");
+              return;
+            }
+
+            if (isDemoMode.value) {
+              if (insumoModal.isEditing) {
+                const idx = insumos.value.findIndex(i => i.id === data.id);
+                if (idx !== -1) insumos.value[idx] = data;
+              } else {
+                insumos.value.push(data);
+              }
+              persistLocalData();
+              insumoModal.open = false;
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('insumos').doc(data.id).set(data);
+                insumoModal.open = false;
+              } catch (err) {
+                alert("Error guardando ingrediente en Firestore: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          async function confirmDeleteInsumo(insumo) {
+            const res = confirm(`¿Estás seguro de que deseas eliminar la materia prima "${insumo.nombre}"?`);
+            if (!res) return;
+
+            if (isDemoMode.value) {
+              insumos.value = insumos.value.filter(i => i.id !== insumo.id);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('insumos').doc(insumo.id).delete();
+              } catch (err) {
+                alert("Error al borrar de Firestore: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          function openProductoModal(prod = null) {
+            if (prod) {
+              productoModal.isEditing = true;
+              productoModal.data = JSON.parse(JSON.stringify(prod));
+            } else {
+              productoModal.isEditing = false;
+              productoModal.data = {
+                id: 'prod_' + Date.now().toString(36),
+                nombre: '',
+                precio_venta: 15.00,
+                costo_operativo: 2.00,
+                receta: []
+              };
+            }
+            productoModal.open = true;
+          }
+
+          function addInsumoToRecipe() {
+            productoModal.data.receta.push({ insumoId: '', cantidad: 0 });
+          }
+
+          function removeInsumoFromRecipe(idx) {
+            productoModal.data.receta.splice(idx, 1);
+          }
+
+          async function saveProducto() {
+            const data = productoModal.data;
+            if (!data.nombre || data.precio_venta <= 0 || data.costo_operativo < 0) {
+              alert("Por favor introduzca especificaciones de precio y costo válidas.");
+              return;
+            }
+
+            const hasEmptyItems = data.receta.some(r => !r.insumoId || r.cantidad <= 0);
+            if (hasEmptyItems) {
+              alert("Asegúrese de definir la materia prima y cantidades positivas.");
+              return;
+            }
+
+            if (isDemoMode.value) {
+              if (productoModal.isEditing) {
+                const idx = productos.value.findIndex(p => p.id === data.id);
+                if (idx !== -1) productos.value[idx] = data;
+              } else {
+                productos.value.push(data);
+              }
+              persistLocalData();
+              productoModal.open = false;
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('productos').doc(data.id).set(data);
+                productoModal.open = false;
+              } catch (err) {
+                alert("Error al persistir producto formulado: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          async function confirmDeleteProducto(prod) {
+            const ans = confirm(`¿Borrar el producto "${prod.nombre}" del catálogo?`);
+            if (!ans) return;
+
+            if (isDemoMode.value) {
+              productos.value = productos.value.filter(p => p.id !== prod.id);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('productos').doc(prod.id).delete();
+              } catch (err) {
+                alert("Error de descarte: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          async function processCotizacion() {
+            if (cart.value.length === 0) return;
+
+            const currentId = getNextId(cotizaciones.value, 'COT');
+            
+            const recProducts = cart.value.map(item => {
+              const baseValue = productos.value.find(p => p.id === item.productoId);
+              return {
+                id: item.productoId,
+                nombre: baseValue.nombre,
+                precio_venta: baseValue.precio_venta,
+                cantidad: item.cantidad
+              };
+            });
+
+            const quoteDoc = {
+              id: currentId,
+              fecha: new Date().toISOString(),
+              productos: recProducts,
+              total_cotizado: cartPriceTotal.value,
+              total_costo_estimado: cartCostTotal.value,
+              cliente: {
+                nombre: posCliente.nombre.trim(),
+                telefono: posCliente.telefono.trim(),
+                email: posCliente.email.trim()
+              }
+            };
+
+            if (isDemoMode.value) {
+              cotizaciones.value.push(quoteDoc);
+              persistLocalData();
+              cart.value = [];
+              posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+              alert(`¡Cotización guardada! Código: ${currentId}.`);
+              currentTab.value = 'cotizaciones';
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('cotizaciones').doc(currentId).set(quoteDoc);
+                cart.value = [];
+                posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+                alert(`¡Cotización registrada! Código: ${currentId}.`);
+                currentTab.value = 'cotizaciones';
+              } catch (err) {
+                alert("Error guardando cotización en Firestore: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          async function deleteCotizacion(id) {
+            const c = confirm("¿Estás seguro de descartar esta cotización del registro?");
+            if (!c) return;
+
+            if (isDemoMode.value) {
+              cotizaciones.value = cotizaciones.value.filter(q => q.id !== id);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('cotizaciones').doc(id).delete();
+              } catch (err) {
+                alert("Error eliminando cotización: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
+          function openPdfPreview(doc, type = 'cotizacion') {
+            pdfPreviewModal.type = type;
+            pdfPreviewModal.data = JSON.parse(JSON.stringify(doc));
+            pdfPreviewModal.open = true;
+          }
+
+          function downloadPdf() {
+            const element = document.getElementById('pdf-container');
+            const prefix = pdfPreviewModal.type === 'factura' ? 'Factura' : 'Cotizacion';
+            const options = {
+              margin: 10,
+              filename: `${prefix}_${pdfPreviewModal.data.id || 'TriquetaLunar'}.pdf`,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(options).from(element).save();
+          }
+
+          async function processSalesCheckout() {
+            if (cart.value.length === 0) return;
+            if (isStockDeficit.value) {
+              alert("No se puede registrar la venta. No hay suficiente abastecimiento de materias primas en el almacén.");
+              return;
+            }
+
+            const currentId = getNextId(ventas.value, 'FAC');
+            
+            const recProducts = cart.value.map(item => {
+              const baseValue = productos.value.find(p => p.id === item.productoId);
+              return {
+                id: item.productoId,
+                nombre: baseValue.nombre,
+                precio_venta: baseValue.precio_venta,
+                cantidad: item.cantidad
+              };
+            });
+
+            const salesDoc = {
+              id: currentId,
+              fecha: new Date().toISOString(),
+              productos: recProducts,
+              total_venta: cartPriceTotal.value,
+              total_costo: cartCostTotal.value,
+              total_ganancia: cartPriceTotal.value - cartCostTotal.value,
+              cliente: {
+                nombre: posCliente.nombre.trim(),
+                telefono: posCliente.telefono.trim(),
+                email: posCliente.email.trim()
+              }
+            };
+
+            if (isDemoMode.value) {
+              const consolidations = consolidatedCartRequiredIngredients.value;
+              
+              Object.keys(consolidations).forEach(insId => {
+                const ism = insumos.value.find(i => i.id === insId);
+                if (ism) {
+                  ism.stock_actual = Math.max(0, ism.stock_actual - consolidations[insId]);
+                }
+              });
+
+              ventas.value.push(salesDoc);
+              persistLocalData();
+              cart.value = [];
+              posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+              alert(`¡Venta procesada con éxito! Factura #${currentId} generada. Almacén actualizado.`);
+              currentTab.value = 'dashboard';
+            } else {
+              try {
+                appLoading.value = true;
+                const consolidations = consolidatedCartRequiredIngredients.value;
+                const batch = db.value.batch();
+
+                const salesRef = db.value.collection('ventas').doc(currentId);
+                batch.set(salesRef, salesDoc);
+
+                Object.keys(consolidations).forEach(insId => {
+                  const itemRef = db.value.collection('insumos').doc(insId);
+                  batch.update(itemRef, {
+                    stock_actual: firebase.firestore.FieldValue.increment(-consolidations[insId])
+                  });
+                });
+
+                await batch.commit();
+                cart.value = [];
+                posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+                alert(`¡Venta transaccional registrada! Código: ${currentId}. El inventario Firestore ha sido descontado.`);
+                currentTab.value = 'dashboard';
+              } catch (err) {
+                alert("Error procesando transacción en Cloud: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
+
           function openFirebaseSetup() {
             firebaseSetupModal.open = true;
           }
@@ -2406,29 +2069,27 @@
               
               const parsed = JSON.parse(str);
               if (!parsed.apiKey || !parsed.projectId) {
-                alert("La configuración pegada parece no contener claves esenciales (apiKey, projectId).");
+                alert("Faltan credenciales clave.");
                 return;
               }
 
               localStorage.setItem('manuf_firebase_config', str);
               firebaseSetupModal.open = false;
-              alert("Credenciales guardadas con éxito. Recargando núcleo...");
+              alert("Credenciales guardadas con éxito. Recargando...");
               window.location.reload();
             } catch (err) {
-              alert("El formato JSON suministrado no es válido: " + err.message);
+              alert("Formato JSON inválido: " + err.message);
             }
           }
 
           function disableFirebaseConfig() {
             localStorage.removeItem('manuf_firebase_config');
             firebaseSetupModal.open = false;
-            alert("Sincronización deshabilitada. Transiriendo a Modo Demo local...");
             window.location.reload();
           }
 
-          // REVERT DATABASES TO FACTORY RESET DEMONSTRATIVE DATA
           function restoreDemoData() {
-            const choice = confirm("¿Restablecer el inventario de almacén y productos/ventas a los niveles originales de demostración? Se borrará el historial actual.");
+            const choice = confirm("¿Restablecer el inventario de almacén y ventas a demostración? Se borrará el historial.");
             if (!choice) return;
 
             if (isDemoMode.value) {
@@ -2448,14 +2109,13 @@
                 demoCotizaciones.forEach(item => db.value.collection('cotizaciones').doc(item.id).set(item));
                 alert("Colecciones de Firestore restablecidas.");
               } catch (err) {
-                alert("Error escribiendo en la nube durante el restablecimiento: " + err.message);
+                alert("Error en la nube: " + err.message);
               } finally {
                 appLoading.value = false;
               }
             }
           }
 
-          // DYNAMIC RESPONSIVE CHART GRAPHICS SVG PATH CALCULATORS
           const chartPointsData = computed(() => {
             if (filteredDashboardVentas.value.length === 0) return [];
             const sorted = [...filteredDashboardVentas.value].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
@@ -2470,7 +2130,6 @@
             });
           });
 
-          // LINE REVENUOUS SVG PATH STRING
           const revenueLinePath = computed(() => {
             const pts = chartPointsData.value;
             if (pts.length === 0) return 'M 0 220';
@@ -2481,7 +2140,6 @@
             return path;
           });
 
-          // LINE PROFITABILITY SVG PATH STRING
           const profitLinePath = computed(() => {
             const pts = chartPointsData.value;
             if (pts.length === 0) return 'M 0 220';
@@ -2492,7 +2150,6 @@
             return path;
           });
 
-          // CLOSED AREA UNDER SHAPE PATH FOR BG GRADIENT RENDER
           const revenueAreaPath = computed(() => {
             const pts = chartPointsData.value;
             if (pts.length === 0) return 'M 0 220 L 0 220 Z';
@@ -2527,30 +2184,27 @@
             formatDate,
             formatDateStrict,
             
-            // Models list arrays
             insumos,
             productos,
             ventas,
             cotizaciones,
             movimientos,
             
-            // Query variables
             insumoSearchQuery,
             posSearchQuery,
             dateFilter,
             empresaConfig,
             posCliente,
             
-            // Modals controls
             insumoModal,
             productoModal,
+            movimientoModal,
             firebaseSetupModal,
             pdfPreviewModal,
-            movimientoModal,
             
-            // Dynamic totals computed functions
             metrics,
             sortedVentas,
+            sortedMovimientos,
             lowStockInsumos,
             lowStockCount,
             getInsumoName,
@@ -2566,7 +2220,6 @@
             addInsumoToRecipe,
             removeInsumoFromRecipe,
             
-            // Cart objects
             cart,
             addToCart,
             incrementCartItem,
@@ -2577,7 +2230,6 @@
             cartPriceTotal,
             cartCostTotal,
             
-            // Stock evaluator check
             consolidatedCartRequiredIngredients,
             stockDeficitReport,
             isStockDeficit,
@@ -2587,12 +2239,10 @@
             openMovimientoModal,
             processMovimiento,
             deleteMovimiento,
-            sortedMovimientos,
             openPdfPreview,
             downloadPdf,
             saveEmpresaConfig,
 
-            // Core database actions
             signInWithGoogle,
             enterGuestMode,
             logout,
@@ -2602,12 +2252,10 @@
             confirmDeleteProducto,
             restoreDemoData,
             
-            // Firebase setup modal methods
             openFirebaseSetup,
             saveFirebaseConfig,
             disableFirebaseConfig,
 
-            // SVG Path metrics
             revenueLinePath,
             profitLinePath,
             revenueAreaPath,
