@@ -942,7 +942,166 @@
           </div>
         </div>
       </div>
+      <div v-if="insumoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
+          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-800">
+              {{ insumoModal.isEditing ? 'Editar Materia Prima' : 'Nueva Materia Prima / Insumo' }}
+            </h3>
+            <button @click="insumoModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
+              <i class="fas fa-xmark text-sm"></i>
+            </button>
+          </div>
+          
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nombre Descriptivo</label>
+              <input v-model="insumoModal.data.nombre" type="text" placeholder="Ej. Rollo PLA Negro 1kg" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+            </div>
 
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Unidad Medida</label>
+                <select v-model="insumoModal.data.unidad_medida" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer transition">
+                  <option value="gramos">gramos (g)</option>
+                  <option value="cm2">cm2 (área)</option>
+                  <option value="unidad">unidad (u)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Costo Unitario ($)</label>
+                <input v-model.number="insumoModal.data.costo_por_unidad" type="number" step="0.0001" placeholder="0.025" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Stock Almacén</label>
+                <input v-model.number="insumoModal.data.stock_actual" type="number" placeholder="1000" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Stock Mínimo</label>
+                <input v-model.number="insumoModal.data.stock_minimo" type="number" placeholder="200" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-end gap-3.5">
+            <button @click="insumoModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Cancelar
+            </button>
+            <button @click="saveInsumo" class="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/15 cursor-pointer transition">
+              Guardar Insumo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="productoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-800">
+              {{ productoModal.isEditing ? 'Editar Producto / Receta' : 'Diseñar Nuevo Producto' }}
+            </h3>
+            <button @click="productoModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
+              <i class="fas fa-xmark text-sm"></i>
+            </button>
+          </div>
+
+          <div class="p-6 overflow-y-auto space-y-4 flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="sm:col-span-2">
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nombre Comercial</label>
+                <input v-model="productoModal.data.nombre" type="text" placeholder="Ej. Llavero Impreso 3D" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Costo Operativo Fijo</label>
+                <input v-model.number="productoModal.data.costo_operativo" type="number" step="0.01" placeholder="Ej. 2.00" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Precio de Venta</label>
+                <input v-model.number="productoModal.data.precio_venta" type="number" step="0.01" placeholder="Ej. 15.00" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+              <div class="bg-indigo-50/50 rounded-xl p-3 border border-indigo-150 flex items-center justify-between text-xs font-semibold leading-none self-end">
+                <div>
+                  <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Margen Neto</span>
+                  <span class="text-sm font-extrabold text-indigo-600 font-mono inline-block mt-1">
+                    ${{ (productoModal.data.precio_venta - modalCalculatedTotalCost).toFixed(2) }} 
+                    ({{ modalCalculatedProfitPercent.toFixed(0) }}%)
+                  </span>
+                </div>
+                <div>
+                  <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Costo Total</span>
+                  <span class="text-sm font-extrabold text-slate-800 font-mono inline-block mt-1">${{ modalCalculatedTotalCost.toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-150 pt-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Composición / Consumo de Insumos</span>
+                <button @click="addInsumoToRecipe" class="py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-100 transition">
+                  <i class="fas fa-plus"></i>
+                  Añadir Insumo
+                </button>
+              </div>
+
+              <div class="space-y-3">
+                <div v-if="productoModal.data.receta.length === 0" class="p-6 border border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-xs">
+                  Sin insumos. El producto no consumirá inventario.
+                </div>
+                
+                <div v-for="(rec, idx) in productoModal.data.receta" :key="idx" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-50 border border-slate-100 p-3 rounded-2xl relative">
+                  <div class="flex-1">
+                    <label class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Materia Prima</label>
+                    <select v-model="rec.insumoId" class="w-full px-2.5 py-1.5 border border-slate-200 bg-white rounded-lg text-xs cursor-pointer">
+                      <option value="" disabled>Selecciona insumo...</option>
+                      <option v-for="ins in insumos" :key="ins.id" :value="ins.id">
+                        {{ ins.nombre }} (${{ ins.costo_por_unidad }}/{{ ins.unidad_medida }})
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="w-32">
+                    <label class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Cantidad</label>
+                    <div class="relative flex items-center">
+                      <input v-model.number="rec.cantidad" type="number" class="w-full pl-2.5 pr-8 py-1.5 border border-slate-200 bg-white rounded-lg text-xs font-mono">
+                      <span class="absolute right-2 px-1 py-0.5 bg-slate-100 text-[10px] text-slate-400 font-semibold rounded pointer-events-none">
+                        {{ getInsumoMedida(rec.insumoId) || '-' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="w-20 text-right pr-2">
+                    <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Subcosto</span>
+                    <span class="text-xs font-mono font-bold text-slate-700">
+                      ${{ (rec.cantidad * getInsumoCostoUnit(rec.insumoId)).toFixed(2) }}
+                    </span>
+                  </div>
+
+                  <button @click="removeInsumoFromRecipe(idx)" class="w-8 h-8 rounded bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs cursor-pointer self-end sm:self-auto">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex justify-end gap-3.5">
+            <button @click="productoModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Cancelar
+            </button>
+            <button @click="saveProducto" class="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/15 cursor-pointer transition">
+              Guardar Receta
+            </button>
+          </div>
+        </div>
+      </div>
       <div v-if="movimientoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
           <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
