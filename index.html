@@ -714,7 +714,8 @@
                 <p class="text-slate-500 text-sm">Administra pedidos con abonos. Al liquidar la deuda, se generará la factura oficial.</p>
               </div>
               <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <table class="w-full text-left">
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left min-w-[700px]">
                   <thead class="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
                     <tr>
                       <th class="px-6 py-3">Código / Cliente</th>
@@ -748,6 +749,7 @@
                     </tr>
                   </tbody>
                 </table>
+                </div>
               </div>
             </section>
             <section v-if="currentTab === 'movimientos'" class="space-y-6">
