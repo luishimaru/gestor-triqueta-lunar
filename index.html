@@ -364,6 +364,9 @@
                         </td>
                         <td class="py-4.5 px-6 text-end">
                           <div class="flex items-center justify-end gap-2">
+                            <button @click="duplicateInsumo(insumo)" class="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-100 transition cursor-pointer" title="Duplicar">
+                              <i class="fas fa-copy text-xs"></i>
+                            </button>
                             <button @click="openInsumoModal(insumo)" class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center border border-indigo-100 transition cursor-pointer" title="Editar">
                               <i class="fas fa-pencil-alt text-xs"></i>
                             </button>
@@ -405,6 +408,9 @@
                       <p class="text-[11px] font-mono text-slate-400 mt-0.5">Clave: {{ prod.id }}</p>
                     </div>
                     <div class="flex items-center gap-1.5">
+                      <button @click="duplicateProducto(prod)" class="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-100 cursor-pointer transition" title="Duplicar">
+                        <i class="fas fa-copy text-xs"></i>
+                      </button>
                       <button @click="openProductoModal(prod)" class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center border border-indigo-100 cursor-pointer transition">
                         <i class="fas fa-pencil-alt text-xs"></i>
                       </button>
@@ -732,6 +738,9 @@
                       </td>
                       <td class="py-3 px-6 text-right font-mono font-bold text-amber-600">${{ (e.total_venta - e.abono).toFixed(2) }}</td>
                       <td class="py-3 px-6 text-center">
+                        <button @click="sumarAbono(e)" class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-100 transition cursor-pointer mr-2">
+                          <i class="fas fa-plus mr-1"></i> Sumar Abono
+                        </button>
                         <button @click="liquidarEncargo(e)" class="px-3 py-1.5 text-xs font-semibold bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-100 transition cursor-pointer">
                           <i class="fas fa-check-double mr-1"></i> Cobrar y Facturar
                         </button>
@@ -1569,9 +1578,13 @@
           });
 
           const filteredPOSProducts = computed(() => {
-            if (!posSearchQuery.value.trim()) return productos.value;
-            const q = posSearchQuery.value.toLowerCase();
-            return productos.value.filter(p => p.nombre.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
+            let list = productos.value;
+            if (posSearchQuery.value.trim()) {
+              const q = posSearchQuery.value.toLowerCase();
+              list = list.filter(p => p.nombre.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
+            }
+            // Ordenar alfabéticamente por nombre (A-Z)
+            return list.slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
           });
 
           const modalCalculatedTotalCost = computed(() => {
@@ -2018,7 +2031,64 @@
               }
             }
           }
+          async function duplicateInsumo(insumo) {
+            const copy = JSON.parse(JSON.stringify(insumo));
+            copy.id = 'ins_' + Date.now().toString(36);
+            copy.nombre = copy.nombre + ' (Copia)';
+            
+            if (isDemoMode.value) {
+              insumos.value.push(copy);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('insumos').doc(copy.id).set(copy);
+              } catch (e) { alert("Error: " + e.message); } finally { appLoading.value = false; }
+            }
+          }
 
+          async function duplicateProducto(prod) {
+            const copy = JSON.parse(JSON.stringify(prod));
+            copy.id = 'prod_' + Date.now().toString(36);
+            copy.nombre = copy.nombre + ' (Copia)';
+            
+            if (isDemoMode.value) {
+              productos.value.push(copy);
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('productos').doc(copy.id).set(copy);
+              } catch (e) { alert("Error: " + e.message); } finally { appLoading.value = false; }
+            }
+          }
+
+          async function sumarAbono(encargo) {
+            const deudaActual = encargo.total_venta - encargo.abono;
+            const extraStr = prompt(`Deuda pendiente: $${deudaActual.toFixed(2)}\n\n¿Cuánto dinero EXTRA está abonando el cliente en este momento?`);
+            if (!extraStr) return;
+            
+            const extraNum = parseFloat(extraStr);
+            if (isNaN(extraNum) || extraNum <= 0) {
+              alert("Por favor ingrese una cantidad válida mayor a 0."); return;
+            }
+            if (extraNum > deudaActual) {
+              alert("El abono no puede ser mayor a la deuda pendiente."); return;
+            }
+
+            const nuevoAbono = encargo.abono + extraNum;
+
+            if (isDemoMode.value) {
+              const enc = encargos.value.find(e => e.id === encargo.id);
+              if (enc) enc.abono = nuevoAbono;
+              persistLocalData();
+            } else {
+              try {
+                appLoading.value = true;
+                await db.value.collection('encargos').doc(encargo.id).update({ abono: nuevoAbono });
+              } catch (e) { alert("Error sumando abono: " + e.message); } finally { appLoading.value = false; }
+            }
+          }
           function openProductoModal(prod = null) {
             // Protección contra eventos del DOM
             if (prod && prod.id) {
@@ -2456,6 +2526,9 @@
             stockDeficitReport,
             isStockDeficit,
             processSalesCheckout,
+            duplicateInsumo,
+            duplicateProducto,
+            sumarAbono,
             liquidarEncargo,
             posPagoCompleto,
             posAbono,
