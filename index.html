@@ -470,9 +470,9 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 overflow-hidden min-h-[500px]">
+              <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 xl:overflow-hidden">
                 
-                <div class="xl:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
+                <div class="xl:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col xl:h-full">
                   <div class="mb-4">
                     <div class="relative">
                       <i class="fas fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
@@ -502,7 +502,7 @@
                 </div>
 
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full justify-between">
-                  <div class="overflow-y-auto flex-1 pr-1 max-h-[420px] space-y-4">
+                  <div class="overflow-y-auto flex-1 pr-1 xl:max-h-[420px] space-y-4">
                     <h3 class="text-sm font-semibold tracking-tight text-slate-400 uppercase flex items-center justify-between">
                       <span>Carrito de Venta</span>
                       <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-0.5 rounded font-mono">{{ cart.reduce((acc, i) => acc + i.cantidad, 0) }}</span>
@@ -566,15 +566,25 @@
                       </div>
                     </div>
 
+                    <div v-if="cart.length > 0" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" v-model="posPagoCompleto" class="w-4 h-4 text-indigo-600 rounded border-slate-300">
+                        <span class="text-xs font-bold text-slate-700">Pago Completo (Cerrar Venta)</span>
+                      </label>
+                      <div v-if="!posPagoCompleto" class="pt-2 border-t border-slate-200 mt-2">
+                        <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Abono Inicial del Cliente ($)</label>
+                        <input v-model.number="posAbono" type="number" min="0" :max="cartPriceTotal" class="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs font-mono focus:ring-1 focus:ring-indigo-500" placeholder="Ej. 10000">
+                        <p class="text-[10px] text-amber-600 font-semibold mt-1">Saldo a deber: ${{ (cartPriceTotal - posAbono).toFixed(2) }}</p>
+                      </div>
+                    </div>
+
                     <div class="space-y-2">
                       <button @click="processCotizacion" :disabled="cart.length === 0" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs">
-                        <i class="fas fa-file-invoice"></i>
-                        Guardar Cotización (No descuenta stock)
+                        <i class="fas fa-file-invoice"></i> Guardar Cotización
                       </button>
-
-                      <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit" class="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-xs">
-                        <i class="fas fa-cash-register"></i>
-                        Procesar y Descontar Almacén
+                      <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit || (!posPagoCompleto && posAbono < 0)" class="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-xs">
+                        <i class="fas" :class="posPagoCompleto ? 'fa-cash-register' : 'fa-clipboard-list'"></i>
+                        {{ posPagoCompleto ? 'Procesar Venta Completa' : 'Registrar Encargo (Descuenta Stock)' }}
                       </button>
                     </div>
                   </div>
@@ -691,7 +701,45 @@
                 </div>
               </div>
             </section>
-
+            <section v-if="currentTab === 'encargos'" class="space-y-6">
+              <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Pedidos</h1>
+                <p class="text-slate-500 text-sm">Administra pedidos con abonos. Al liquidar la deuda, se generará la factura oficial.</p>
+              </div>
+              <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left">
+                  <thead class="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
+                    <tr>
+                      <th class="px-6 py-3">Código / Cliente</th>
+                      <th class="px-6 py-3">Artículos (Stock descontado)</th>
+                      <th class="px-6 py-3 text-right">Abonado / Total</th>
+                      <th class="px-6 py-3 text-right">Deuda Pendiente</th>
+                      <th class="px-6 py-3 text-center">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-sm divide-y divide-slate-100">
+                    <tr v-if="encargos.length === 0"><td colspan="5" class="py-12 text-center text-slate-400">No hay pedidos pendientes de entrega.</td></tr>
+                    <tr v-for="e in encargos" :key="e.id" class="hover:bg-slate-50">
+                      <td class="py-3 px-6">
+                        <span class="font-mono font-bold text-slate-900 text-xs block">{{ e.id }}</span>
+                        <span class="font-medium text-slate-600 text-xs">{{ e.cliente?.nombre || 'Sin nombre' }}</span>
+                      </td>
+                      <td class="py-3 px-6"><span v-for="p in e.productos" :key="p.id" class="inline-block bg-slate-100 text-[11px] px-2 py-0.5 rounded mr-1">{{ p.cantidad }}x {{ p.nombre }}</span></td>
+                      <td class="py-3 px-6 text-right text-xs">
+                        <p class="text-emerald-600 font-bold">Abonó: ${{ e.abono.toFixed(2) }}</p>
+                        <p class="text-slate-500">De ${{ e.total_venta.toFixed(2) }}</p>
+                      </td>
+                      <td class="py-3 px-6 text-right font-mono font-bold text-amber-600">${{ (e.total_venta - e.abono).toFixed(2) }}</td>
+                      <td class="py-3 px-6 text-center">
+                        <button @click="liquidarEncargo(e)" class="px-3 py-1.5 text-xs font-semibold bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-100 transition cursor-pointer">
+                          <i class="fas fa-check-double mr-1"></i> Cobrar y Facturar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
             <section v-if="currentTab === 'movimientos'" class="space-y-6">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -1216,6 +1264,9 @@
           const ventas = ref([]);
           const cotizaciones = ref([]);
           const movimientos = ref([]);
+          const encargos = ref([]);
+          const posPagoCompleto = ref(true);
+          const posAbono = ref(0);
 
           const insumoSearchQuery = ref('');
           const posSearchQuery = ref('');
@@ -1807,6 +1858,7 @@
             localStorage.setItem('manuf_ventas', JSON.stringify(ventas.value));
             localStorage.setItem('manuf_cotizaciones', JSON.stringify(cotizaciones.value));
             localStorage.setItem('manuf_movimientos', JSON.stringify(movimientos.value));
+            localStorage.setItem('manuf_encargos', JSON.stringify(encargos.value));
           }
 
           let unsubscribeInsumos = null;
@@ -2127,79 +2179,92 @@
 
           async function processSalesCheckout() {
             if (cart.value.length === 0) return;
-            if (isStockDeficit.value) {
-              alert("No se puede registrar la venta. No hay suficiente abastecimiento de materias primas en el almacén.");
-              return;
-            }
+            if (isStockDeficit.value) { alert("Stock insuficiente."); return; }
+            if (!posPagoCompleto.value && posAbono.value > cartPriceTotal.value) { alert("El abono no puede superar el total."); return; }
 
-            const currentId = getNextId(ventas.value, 'FAC');
+            const isEncargo = !posPagoCompleto.value;
+            const prefix = isEncargo ? 'PED' : 'FAC';
+            const currentId = getNextId(isEncargo ? encargos.value : ventas.value, prefix);
             
             const recProducts = cart.value.map(item => {
               const baseValue = productos.value.find(p => p.id === item.productoId);
-              return {
-                id: item.productoId,
-                nombre: baseValue.nombre,
-                precio_venta: baseValue.precio_venta,
-                cantidad: item.cantidad
-              };
+              return { id: item.productoId, nombre: baseValue.nombre, precio_venta: baseValue.precio_venta, cantidad: item.cantidad };
             });
 
-            const salesDoc = {
+            const docData = {
               id: currentId,
               fecha: new Date().toISOString(),
               productos: recProducts,
               total_venta: cartPriceTotal.value,
               total_costo: cartCostTotal.value,
               total_ganancia: cartPriceTotal.value - cartCostTotal.value,
-              cliente: {
-                nombre: posCliente.nombre.trim(),
-                telefono: posCliente.telefono.trim(),
-                email: posCliente.email.trim()
-              }
+              cliente: { nombre: posCliente.nombre.trim(), telefono: posCliente.telefono.trim(), email: posCliente.email.trim() }
             };
+
+            if (isEncargo) {
+              docData.abono = posAbono.value;
+            }
 
             if (isDemoMode.value) {
               const consolidations = consolidatedCartRequiredIngredients.value;
-              
               Object.keys(consolidations).forEach(insId => {
                 const ism = insumos.value.find(i => i.id === insId);
-                if (ism) {
-                  ism.stock_actual = Math.max(0, ism.stock_actual - consolidations[insId]);
-                }
+                if (ism) ism.stock_actual = Math.max(0, ism.stock_actual - consolidations[insId]);
               });
 
-              ventas.value.push(salesDoc);
+              if (isEncargo) encargos.value.push(docData);
+              else ventas.value.push(docData);
+              
               persistLocalData();
-              cart.value = [];
-              posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-              alert(`¡Venta procesada con éxito! Factura #${currentId} generada. Almacén actualizado.`);
-              currentTab.value = 'dashboard';
+              cart.value = []; posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+              posPagoCompleto.value = true; posAbono.value = 0;
+              alert(isEncargo ? `Encargo ${currentId} guardado.` : `Factura ${currentId} generada.`);
+              currentTab.value = isEncargo ? 'encargos' : 'dashboard';
             } else {
               try {
                 appLoading.value = true;
                 const consolidations = consolidatedCartRequiredIngredients.value;
                 const batch = db.value.batch();
 
-                const salesRef = db.value.collection('ventas').doc(currentId);
-                batch.set(salesRef, salesDoc);
+                const refDoc = db.value.collection(isEncargo ? 'encargos' : 'ventas').doc(currentId);
+                batch.set(refDoc, docData);
 
                 Object.keys(consolidations).forEach(insId => {
                   const itemRef = db.value.collection('insumos').doc(insId);
-                  batch.update(itemRef, {
-                    stock_actual: firebase.firestore.FieldValue.increment(-consolidations[insId])
-                  });
+                  batch.update(itemRef, { stock_actual: firebase.firestore.FieldValue.increment(-consolidations[insId]) });
                 });
 
                 await batch.commit();
-                cart.value = [];
-                posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-                alert(`¡Venta transaccional registrada! Código: ${currentId}. El inventario Firestore ha sido descontado.`);
-                currentTab.value = 'dashboard';
-              } catch (err) {
-                alert("Error procesando transacción en Cloud: " + err.message);
-              } finally {
-                appLoading.value = false;
-              }
+                cart.value = []; posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+                posPagoCompleto.value = true; posAbono.value = 0;
+                alert(isEncargo ? `Encargo ${currentId} guardado.` : `Factura ${currentId} generada.`);
+                currentTab.value = isEncargo ? 'encargos' : 'dashboard';
+              } catch (err) { alert("Error: " + err.message); } finally { appLoading.value = false; }
+            }
+          }
+
+          async function liquidarEncargo(encargo) {
+            const c = confirm(`¿Confirmas que el cliente pagó los $${(encargo.total_venta - encargo.abono).toFixed(2)} restantes?`);
+            if(!c) return;
+
+            const newFacId = getNextId(ventas.value, 'FAC');
+            const ventaFinal = { ...encargo, id: newFacId, fecha: new Date().toISOString() };
+            delete ventaFinal.abono;
+
+            if(isDemoMode.value) {
+              ventas.value.push(ventaFinal);
+              encargos.value = encargos.value.filter(e => e.id !== encargo.id);
+              persistLocalData();
+              alert(`¡Deuda liquidada! Factura de venta final: ${newFacId}`);
+            } else {
+              try {
+                appLoading.value = true;
+                const batch = db.value.batch();
+                batch.set(db.value.collection('ventas').doc(newFacId), ventaFinal);
+                batch.delete(db.value.collection('encargos').doc(encargo.id));
+                await batch.commit();
+                alert(`¡Deuda liquidada! Factura generada: ${newFacId}`);
+              } catch(e) { alert("Error: " + e.message); } finally { appLoading.value = false; }
             }
           }
 
@@ -2379,6 +2444,10 @@
             stockDeficitReport,
             isStockDeficit,
             processSalesCheckout,
+            liquidarEncargo,
+            posPagoCompleto,
+            posAbono,
+            encargos,
             processCotizacion,
             deleteCotizacion,
             openMovimientoModal,
