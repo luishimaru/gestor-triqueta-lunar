@@ -745,6 +745,9 @@
                         <button @click="liquidarEncargo(e)" class="px-3 py-1.5 text-xs font-semibold bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-100 transition cursor-pointer">
                           <i class="fas fa-check-double mr-1"></i> Cobrar y Facturar
                         </button>
+                        <button @click="cancelarEncargo(e)" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 inline-flex items-center justify-center border border-red-100 cursor-pointer transition ml-2" title="Cancelar Pedido y Devolver Material">
+                          <i class="fas fa-trash-can text-xs"></i>
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -2351,6 +2354,53 @@
               } catch(e) { alert("Error: " + e.message); } finally { appLoading.value = false; }
             }
           }
+          async function cancelarEncargo(encargo) {
+            const c = confirm(`¿Estás seguro de cancelar el pedido ${encargo.id}?\n\nSe devolverán los materiales al inventario y se borrará este registro para siempre.`);
+            if (!c) return;
+
+            // Calcular matemáticamente los materiales a devolver basándose en las recetas
+            const materialsToReturn = {};
+            encargo.productos.forEach(item => {
+              const p = productos.value.find(prod => prod.id === item.id);
+              if (p && p.receta) {
+                p.receta.forEach(ing => {
+                  const neededAmount = (ing.cantidad || 0) * item.cantidad;
+                  materialsToReturn[ing.insumoId] = (materialsToReturn[ing.insumoId] || 0) + neededAmount;
+                });
+              }
+            });
+
+            if (isDemoMode.value) {
+              Object.keys(materialsToReturn).forEach(insId => {
+                const ism = insumos.value.find(i => i.id === insId);
+                if (ism) ism.stock_actual += materialsToReturn[insId];
+              });
+              encargos.value = encargos.value.filter(e => e.id !== encargo.id);
+              persistLocalData();
+              alert(`Pedido ${encargo.id} cancelado con éxito.`);
+            } else {
+              try {
+                appLoading.value = true;
+                const batch = db.value.batch();
+                
+                // Actualizar inventario en la nube
+                Object.keys(materialsToReturn).forEach(insId => {
+                  const itemRef = db.value.collection('insumos').doc(insId);
+                  batch.update(itemRef, { stock_actual: firebase.firestore.FieldValue.increment(materialsToReturn[insId]) });
+                });
+                
+                // Borrar el documento
+                batch.delete(db.value.collection('encargos').doc(encargo.id));
+                
+                await batch.commit();
+                alert(`Pedido ${encargo.id} cancelado y materiales devueltos al almacén.`);
+              } catch (err) {
+                alert("Error al cancelar el pedido: " + err.message);
+              } finally {
+                appLoading.value = false;
+              }
+            }
+          }
 
           function openFirebaseSetup() {
             firebaseSetupModal.open = true;
@@ -2532,6 +2582,7 @@
             duplicateProducto,
             sumarAbono,
             liquidarEncargo,
+            cancelarEncargo,
             posPagoCompleto,
             posAbono,
             encargos,
