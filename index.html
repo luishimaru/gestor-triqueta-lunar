@@ -1246,7 +1246,6 @@
             { id: 'pos', name: 'Punto de Venta POS', icon: 'fa-shopping-cart' },
             { id: 'cotizaciones', name: 'Historial Cotizaciones', icon: 'fa-file-invoice' },
             { id: 'facturas', name: 'Historial de Ventas (Facturas)', icon: 'fa-file-lines' },
-            { id: 'encargos', name: 'Gestión de Pedidos', icon: 'fa-clipboard-list' },
             { id: 'movimientos', name: 'Ajustes y Mermas', icon: 'fa-scale-unbalanced' },
             { id: 'config', name: 'Ajustes', icon: 'fa-gears' },
           ];
@@ -1811,7 +1810,6 @@
                     ventas.value = [];
                     cotizaciones.value = [];
                     movimientos.value = [];
-                    encargos.value = [];
                   }
                   appLoading.value = false;
                 });
@@ -1836,22 +1834,19 @@
             const localVents = localStorage.getItem('manuf_ventas');
             const localQuotes = localStorage.getItem('manuf_cotizaciones');
             const localMovs = localStorage.getItem('manuf_movimientos');
-            const localEncargos = localStorage.getItem('manuf_encargos');
 
-            if (localIns && localProds && localVents && localQuotes && localMovs && localEncargos) {
+            if (localIns && localProds && localVents && localQuotes && localMovs) {
               insumos.value = JSON.parse(localIns);
               productos.value = JSON.parse(localProds);
               ventas.value = JSON.parse(localVents);
               cotizaciones.value = JSON.parse(localQuotes);
               movimientos.value = JSON.parse(localMovs);
-              encargos.value = JSON.parse(localEncargos);
             } else {
               insumos.value = JSON.parse(JSON.stringify(demoInsumos));
               productos.value = JSON.parse(JSON.stringify(demoProductos));
               ventas.value = JSON.parse(JSON.stringify(demoVentas));
               cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
               movimientos.value = [];
-              encargos.value = [];
               persistLocalData();
             }
             appLoading.value = false;
@@ -1871,7 +1866,6 @@
           let unsubscribeVentas = null;
           let unsubscribeCotizaciones = null;
           let unsubscribeMovimientos = null;
-          let unsubscribeEncargos = null;
 
           function subscribeToFirestore() {
             if (!db.value || !user.value) return;
@@ -1907,19 +1901,12 @@
             }, err => console.error('Fallo de lectura en Movimientos: ' + err.message));
           }
 
-          unsubscribeEncargos = db.value.collection('encargos').onSnapshot(snap => {
-              const list = [];
-              snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-              encargos.value = list;
-            }, err => console.error('Fallo de lectura en Encargos: ' + err.message));
-
           function clearFirestoreSubscriptions() {
             if (unsubscribeInsumos) unsubscribeInsumos();
             if (unsubscribeProductos) unsubscribeProductos();
             if (unsubscribeVentas) unsubscribeVentas();
             if (unsubscribeCotizaciones) unsubscribeCotizaciones();
             if (unsubscribeMovimientos) unsubscribeMovimientos();
-            if (unsubscribeEncargos) unsubscribeEncargos();
           }
 
           async function signInWithGoogle() {
@@ -2321,7 +2308,6 @@
               ventas.value = JSON.parse(JSON.stringify(demoVentas));
               cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
               movimientos.value = [];
-              encargos.value = [];
               persistLocalData();
               alert("Base de datos local reestablecida.");
             } else {
