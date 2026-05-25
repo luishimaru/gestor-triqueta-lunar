@@ -493,7 +493,7 @@
                     </div>
                     <div v-for="prod in filteredPOSProducts" :key="prod.id" class="p-4 border border-slate-100 bg-slate-50/40 rounded-xl flex items-center justify-between hover:bg-slate-50 hover:border-slate-200 transition">
                       <div class="flex-1 min-w-0 pr-4">
-                        <h4 class="font-bold text-slate-800 text-sm truncate">{{ prod.nombre }}</h4>
+                        <h4 class="font-bold text-slate-800 text-sm whitespace-normal break-words">{{ prod.nombre }}</h4>
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-400 font-semibold uppercase tracking-wider">
                           <span class="text-slate-600 text-sm font-mono tracking-normal font-extrabold text-indigo-600">${{ prod.precio_venta }}</span>
                           <span class="font-mono lowercase text-slate-400">Insumos: {{ prod.receta.length }}</span>
