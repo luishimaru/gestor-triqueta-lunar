@@ -476,6 +476,20 @@
                 </div>
               </div>
 
+              <!-- Banner de Edición -->
+              <div v-if="editingEncargoId" class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-center justify-between shadow-inner mt-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg"><i class="fas fa-pen-to-square"></i></div>
+                  <div>
+                    <h3 class="font-bold text-blue-800 text-sm">Modificando Pedido: {{ editingEncargoId }}</h3>
+                    <p class="text-xs text-blue-600">Al guardar, el inventario se ajustará sumando o restando las diferencias.</p>
+                  </div>
+                </div>
+                <button @click="cancelarEdicionEncargo" class="px-4 py-2 bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-lg text-xs font-bold transition shadow-sm cursor-pointer">
+                  Cancelar Edición
+                </button>
+              </div>
+
               <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 xl:overflow-hidden">
                 
                 <div class="xl:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col xl:h-full">
@@ -739,6 +753,9 @@
                       </td>
                       <td class="py-3 px-6 text-right font-mono font-bold text-amber-600">${{ (e.total_venta - e.abono).toFixed(2) }}</td>
                       <td class="py-3 px-6 text-center">
+                        <button @click="iniciarEdicionEncargo(e)" class="px-3 py-1.5 text-xs font-semibold bg-blue-50 border border-blue-100 text-blue-600 rounded-lg hover:bg-blue-100 transition cursor-pointer mr-2">
+                          <i class="fas fa-edit mr-1"></i> Editar
+                        </button>
                         <button @click="sumarAbono(e)" class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-100 transition cursor-pointer mr-2">
                           <i class="fas fa-plus mr-1"></i> Sumar Abono
                         </button>
@@ -1283,7 +1300,8 @@
           const encargos = ref([]);
           const posPagoCompleto = ref(true);
           const posAbono = ref(0);
-
+          const editingEncargoId = ref(null);
+          const originalEncargoData = ref(null);
           const insumoSearchQuery = ref('');
           const posSearchQuery = ref('');
           const dateFilter = ref('current_month');
@@ -1648,18 +1666,27 @@
             const req = consolidatedCartRequiredIngredients.value;
             const deficitList = [];
             
+            let refundMap = {};
+            if (editingEncargoId.value && originalEncargoData.value) {
+              originalEncargoData.value.productos.forEach(item => {
+                const p = productos.value.find(prod => prod.id === item.id);
+                if (p && p.receta) {
+                  p.receta.forEach(ing => {
+                    const neededAmount = (ing.cantidad || 0) * item.cantidad;
+                    refundMap[ing.insumoId] = (refundMap[ing.insumoId] || 0) + neededAmount;
+                  });
+                }
+              });
+            }
+
             Object.keys(req).forEach(id => {
               const ism = insumos.value.find(i => i.id === id);
               if (ism) {
-                const totalAvailable = ism.stock_actual;
+                const refundedAmount = refundMap[id] || 0;
+                const totalAvailable = ism.stock_actual + refundedAmount;
                 const totalRequired = req[id];
                 if (totalRequired > totalAvailable) {
-                  deficitList.push({
-                    id: id,
-                    nombre: ism.nombre,
-                    medida: ism.unidad_medida,
-                    deficit: totalRequired - totalAvailable
-                  });
+                  deficitList.push({ id: id, nombre: ism.nombre, medida: ism.unidad_medida, deficit: totalRequired - totalAvailable });
                 }
               }
             });
@@ -2270,8 +2297,15 @@
             if (!posPagoCompleto.value && posAbono.value > cartPriceTotal.value) { alert("El abono no puede superar el total."); return; }
 
             const isEncargo = !posPagoCompleto.value;
-            const prefix = isEncargo ? 'PED' : 'FAC';
-            const currentId = getNextId(isEncargo ? encargos.value : ventas.value, prefix);
+            
+            let currentId;
+            if (editingEncargoId.value && isEncargo) {
+              currentId = editingEncargoId.value;
+            } else if (editingEncargoId.value && !isEncargo) {
+              currentId = getNextId(ventas.value, 'FAC');
+            } else {
+              currentId = getNextId(isEncargo ? encargos.value : ventas.value, isEncargo ? 'PED' : 'FAC');
+            }
             
             const recProducts = cart.value.map(item => {
               const baseValue = productos.value.find(p => p.id === item.productoId);
@@ -2280,7 +2314,7 @@
 
             const docData = {
               id: currentId,
-              fecha: new Date().toISOString(),
+              fecha: (editingEncargoId.value && isEncargo) ? originalEncargoData.value.fecha : new Date().toISOString(),
               productos: recProducts,
               total_venta: cartPriceTotal.value,
               total_costo: cartCostTotal.value,
@@ -2288,46 +2322,95 @@
               cliente: { nombre: posCliente.nombre.trim(), telefono: posCliente.telefono.trim(), email: posCliente.email.trim() }
             };
 
-            if (isEncargo) {
-              docData.abono = posAbono.value;
+            if (isEncargo) docData.abono = posAbono.value;
+
+            const refundMap = {};
+            if (editingEncargoId.value && originalEncargoData.value) {
+              originalEncargoData.value.productos.forEach(item => {
+                const p = productos.value.find(prod => prod.id === item.id);
+                if (p && p.receta) {
+                  p.receta.forEach(ing => {
+                    const neededAmount = (ing.cantidad || 0) * item.cantidad;
+                    refundMap[ing.insumoId] = (refundMap[ing.insumoId] || 0) + neededAmount;
+                  });
+                }
+              });
             }
 
+            const consolidations = consolidatedCartRequiredIngredients.value;
+            const allAffectedInsumos = [...new Set([...Object.keys(refundMap), ...Object.keys(consolidations)])];
+
             if (isDemoMode.value) {
-              const consolidations = consolidatedCartRequiredIngredients.value;
-              Object.keys(consolidations).forEach(insId => {
+              allAffectedInsumos.forEach(insId => {
                 const ism = insumos.value.find(i => i.id === insId);
-                if (ism) ism.stock_actual = Math.max(0, ism.stock_actual - consolidations[insId]);
+                if (ism) {
+                  const netChange = (refundMap[insId] || 0) - (consolidations[insId] || 0);
+                  ism.stock_actual = Math.max(0, ism.stock_actual + netChange);
+                }
               });
 
+              if (editingEncargoId.value) encargos.value = encargos.value.filter(e => e.id !== editingEncargoId.value);
+              
               if (isEncargo) encargos.value.push(docData);
               else ventas.value.push(docData);
               
               persistLocalData();
               cart.value = []; posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
               posPagoCompleto.value = true; posAbono.value = 0;
-              alert(isEncargo ? `Encargo ${currentId} guardado.` : `Factura ${currentId} generada.`);
+              editingEncargoId.value = null; originalEncargoData.value = null;
+              
+              alert(isEncargo ? `Pedido ${currentId} guardado con éxito.` : `Factura ${currentId} generada.`);
               currentTab.value = isEncargo ? 'encargos' : 'dashboard';
             } else {
               try {
                 appLoading.value = true;
-                const consolidations = consolidatedCartRequiredIngredients.value;
                 const batch = db.value.batch();
 
-                const refDoc = db.value.collection(isEncargo ? 'encargos' : 'ventas').doc(currentId);
-                batch.set(refDoc, docData);
+                if (editingEncargoId.value && editingEncargoId.value !== currentId) {
+                  batch.delete(db.value.collection('encargos').doc(editingEncargoId.value));
+                }
 
-                Object.keys(consolidations).forEach(insId => {
-                  const itemRef = db.value.collection('insumos').doc(insId);
-                  batch.update(itemRef, { stock_actual: firebase.firestore.FieldValue.increment(-consolidations[insId]) });
+                batch.set(db.value.collection(isEncargo ? 'encargos' : 'ventas').doc(currentId), docData);
+
+                allAffectedInsumos.forEach(insId => {
+                  const netChange = (refundMap[insId] || 0) - (consolidations[insId] || 0);
+                  if (netChange !== 0) {
+                     const itemRef = db.value.collection('insumos').doc(insId);
+                     batch.update(itemRef, { stock_actual: firebase.firestore.FieldValue.increment(netChange) });
+                  }
                 });
 
                 await batch.commit();
                 cart.value = []; posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
                 posPagoCompleto.value = true; posAbono.value = 0;
-                alert(isEncargo ? `Encargo ${currentId} guardado.` : `Factura ${currentId} generada.`);
+                editingEncargoId.value = null; originalEncargoData.value = null;
+                
+                alert(isEncargo ? `Pedido ${currentId} actualizado en la nube.` : `Factura ${currentId} generada.`);
                 currentTab.value = isEncargo ? 'encargos' : 'dashboard';
               } catch (err) { alert("Error: " + err.message); } finally { appLoading.value = false; }
             }
+          }
+
+          function iniciarEdicionEncargo(encargo) {
+            editingEncargoId.value = encargo.id;
+            originalEncargoData.value = JSON.parse(JSON.stringify(encargo));
+            cart.value = encargo.productos.map(p => ({ productoId: p.id, cantidad: p.cantidad }));
+            posCliente.nombre = encargo.cliente?.nombre || '';
+            posCliente.telefono = encargo.cliente?.telefono || '';
+            posCliente.email = encargo.cliente?.email || '';
+            posPagoCompleto.value = false;
+            posAbono.value = encargo.abono || 0;
+            currentTab.value = 'pos';
+          }
+
+          function cancelarEdicionEncargo() {
+            editingEncargoId.value = null;
+            originalEncargoData.value = null;
+            cart.value = [];
+            posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+            posPagoCompleto.value = true;
+            posAbono.value = 0;
+            currentTab.value = 'encargos';
           }
 
           async function liquidarEncargo(encargo) {
@@ -2578,6 +2661,9 @@
             stockDeficitReport,
             isStockDeficit,
             processSalesCheckout,
+            editingEncargoId,
+            iniciarEdicionEncargo,
+            cancelarEdicionEncargo,
             duplicateInsumo,
             duplicateProducto,
             sumarAbono,
