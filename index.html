@@ -156,7 +156,7 @@
                 <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center justify-between">
                   <div>
                     <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Costo por Mermas / Errores</span>
-                    <span class="text-xl font-bold text-amber-900 block mt-1 font-mono">${{ metrics.totalMermas.toLocaleString() }}</span>
+                    <span class="text-xl font-bold text-amber-900 block mt-1 font-mono">{{ money(metrics.totalMermas) }}</span>
                   </div>
                   <div class="w-10 h-10 rounded-xl bg-amber-200/50 flex items-center justify-center text-amber-600 text-lg">
                     <i class="fas fa-triangle-exclamation"></i>
@@ -165,7 +165,7 @@
                 <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 flex items-center justify-between">
                   <div>
                     <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Uso Personal / Muestras</span>
-                    <span class="text-xl font-bold text-purple-900 block mt-1 font-mono">${{ metrics.totalPersonal.toLocaleString() }}</span>
+                    <span class="text-xl font-bold text-purple-900 block mt-1 font-mono">{{ money(metrics.totalPersonal) }}</span>
                   </div>
                   <div class="w-10 h-10 rounded-xl bg-purple-200/50 flex items-center justify-center text-purple-600 text-lg">
                     <i class="fas fa-gift"></i>
@@ -177,7 +177,7 @@
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                   <div>
                     <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Ventas Registradas</span>
-                    <span class="text-2xl font-bold text-slate-900 block mt-1 font-mono">${{ metrics.totalSales.toLocaleString() }}</span>
+                    <span class="text-2xl font-bold text-slate-900 block mt-1 font-mono">{{ money(metrics.totalSales) }}</span>
                     <span class="text-xs text-slate-400 mt-1 block">Facturado acumulado</span>
                   </div>
                   <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 border border-slate-100 text-lg">
@@ -188,7 +188,7 @@
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                   <div>
                     <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Costo de Producción</span>
-                    <span class="text-2xl font-bold text-slate-900 block mt-1 font-mono">${{ metrics.totalCost.toLocaleString() }}</span>
+                    <span class="text-2xl font-bold text-slate-900 block mt-1 font-mono">{{ money(metrics.totalCost) }}</span>
                     <span class="text-xs text-slate-400 mt-1 block">Insumos + Costos Op</span>
                   </div>
                   <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 border border-slate-100 text-lg">
@@ -199,7 +199,7 @@
                 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                   <div>
                     <span class="text-xs font-medium text-slate-500 uppercase tracking-wider block">Ganancia Neta</span>
-                    <span class="text-2xl font-bold block mt-1 font-mono text-emerald-600" :class="{'text-amber-600': metrics.totalProfit < 0}">${{ metrics.totalProfit.toLocaleString() }}</span>
+                    <span class="text-2xl font-bold block mt-1 font-mono text-emerald-600" :class="{'text-amber-600': metrics.totalProfit < 0}">{{ money(metrics.totalProfit) }}</span>
                     <span class="text-xs text-slate-400 mt-1 block">Retorno financiero</span>
                   </div>
                   <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 text-lg">
@@ -439,24 +439,24 @@
                     <div class="bg-slate-50 rounded-xl p-3.5 flex flex-wrap gap-4 justify-between border border-slate-100">
                       <div>
                         <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Costo Operativo</span>
-                        <span class="text-sm font-semibold text-slate-700 font-mono">${{ (prod.costo_operativo || 0).toFixed(2) }}</span>
+                        <span class="text-sm font-semibold text-slate-700 font-mono">{{ money((prod.costo_operativo || 0)) }}</span>
                       </div>
                       <div>
                         <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Costo Insumos</span>
-                        <span class="text-sm font-semibold text-slate-700 font-mono">${{ calculateRecipeMaterialsCost(prod).toFixed(2) }}</span>
+                        <span class="text-sm font-semibold text-slate-700 font-mono">{{ money(calculateRecipeMaterialsCost(prod)) }}</span>
                       </div>
                       <div>
                         <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Costo Total</span>
-                        <span class="text-sm font-bold text-red-600 font-mono">${{ calculateTotalProductCost(prod).toFixed(2) }}</span>
+                        <span class="text-sm font-bold text-red-600 font-mono">{{ money(calculateTotalProductCost(prod)) }}</span>
                       </div>
                       <div>
                         <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Precio Venta</span>
-                        <span class="text-sm font-bold text-slate-900 font-mono">${{ (prod.precio_venta || 0).toFixed(2) }}</span>
+                        <span class="text-sm font-bold text-slate-900 font-mono">{{ money((prod.precio_venta || 0)) }}</span>
                       </div>
                       <div>
                         <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Ganancia / Margen</span>
                         <span class="text-sm font-extrabold font-mono text-emerald-600 flex items-center gap-1.5">
-                          ${{ (prod.precio_venta - calculateTotalProductCost(prod)).toFixed(2) }}
+                          {{ money((prod.precio_venta - calculateTotalProductCost(prod))) }}
                           <span class="text-[10px] bg-emerald-100 text-emerald-700 px-1 rounded">
                             {{ calculateProfitPercentage(prod).toFixed(0) }}%
                           </span>
@@ -490,6 +490,20 @@
                 </button>
               </div>
 
+              <!-- Banner de cotización cargada -->
+              <div v-if="cotizacionActivaId" class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center justify-between gap-3 shadow-inner mt-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-lg shrink-0"><i class="fas" :class="cotizacionModo === 'editar' ? 'fa-pen-to-square' : 'fa-arrow-right'"></i></div>
+                  <div>
+                    <h3 class="font-bold text-emerald-800 text-sm">{{ cotizacionModo === 'editar' ? 'Editando Cotización' : 'Convirtiendo Cotización' }}: {{ cotizacionActivaId }}</h3>
+                    <p class="text-xs text-emerald-700">{{ cotizacionModo === 'editar' ? 'Los cambios no afectan el inventario.' : 'Elige pago completo o abono. Al registrar se descuenta el inventario.' }}</p>
+                  </div>
+                </div>
+                <button @click="cancelarCotizacionActiva" class="px-4 py-2 bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-bold transition shadow-sm cursor-pointer shrink-0">
+                  Cancelar
+                </button>
+              </div>
+
               <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 xl:overflow-hidden">
                 
                 <div class="xl:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col xl:h-full">
@@ -509,7 +523,7 @@
                       <div class="flex-1 min-w-0 pr-4">
                         <h4 class="font-bold text-slate-800 text-sm whitespace-normal break-words">{{ prod.nombre }}</h4>
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                          <span class="text-slate-600 text-sm font-mono tracking-normal font-extrabold text-indigo-600">${{ prod.precio_venta }}</span>
+                          <span class="text-slate-600 text-sm font-mono tracking-normal font-extrabold text-indigo-600">{{ money(prod.precio_venta) }}</span>
                           <span class="font-mono lowercase text-slate-400">Insumos: {{ prod.receta.length }}</span>
                         </div>
                       </div>
@@ -525,7 +539,12 @@
                   <div class="overflow-y-auto flex-1 pr-1 xl:max-h-[420px] space-y-4">
                     <h3 class="text-sm font-semibold tracking-tight text-slate-400 uppercase flex items-center justify-between">
                       <span>Carrito de Venta</span>
-                      <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-0.5 rounded font-mono">{{ cart.reduce((acc, i) => acc + i.cantidad, 0) }}</span>
+                      <span class="flex items-center gap-2">
+                        <button @click="addConceptoLibre" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-lg text-[10px] font-bold normal-case tracking-normal transition cursor-pointer">
+                          <i class="fas fa-plus mr-0.5"></i> Concepto libre
+                        </button>
+                        <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-0.5 rounded font-mono">{{ formatQty(cartItemCount) }}</span>
+                      </span>
                     </h3>
 
                     <div class="space-y-3">
@@ -533,20 +552,30 @@
                         <i class="fas fa-basket-shopping text-3xl mb-2 text-slate-300"></i>
                         <p class="text-sm">El carrito está vacío</p>
                       </div>
-                      <div v-for="item in cart" :key="item.productoId" class="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between group">
+                      <div v-for="item in cart" :key="item.lineId" class="p-3 bg-slate-50 border rounded-xl flex items-center justify-between group" :class="item.personalizado ? 'border-indigo-200' : 'border-slate-100'">
                         <div class="flex-1 min-w-0 pr-3">
-                          <span class="text-xs font-bold font-mono text-slate-700 truncate block">{{ getProductoName(item.productoId) }}</span>
-                          <span class="text-xs text-slate-400 font-mono">${{ getProductoPrice(item.productoId).toFixed(2) }} c/u</span>
+                          <span class="text-xs font-bold font-mono text-slate-700 truncate block">{{ cartLineName(item) }}</span>
+                          <template v-if="item.personalizado">
+                            <span class="text-xs text-slate-500 font-mono block">{{ formatQty(item.unidades) }} × {{ money(cartLineUnit(item)) }} = <b class="text-slate-700">{{ money(item.total) }}</b></span>
+                            <span class="text-[10px] font-bold text-indigo-600 block truncate">{{ item.libre ? 'Concepto libre' : 'Personalizado · base: ' + cartLineBaseName(item) }}</span>
+                          </template>
+                          <span v-else class="text-xs text-slate-400 font-mono block">{{ money(cartLineUnit(item)) }} c/u</span>
+                          <span v-if="cartLineBajoCosto(item)" class="text-[10px] font-bold text-red-600 block"><i class="fas fa-triangle-exclamation mr-0.5"></i> Por debajo del costo</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                          <button @click="decrementCartItem(item.productoId)" class="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300/80 text-zinc-700 flex items-center justify-center text-xs transition cursor-pointer">
-                            <i class="fas fa-minus"></i>
+                        <div class="flex items-center gap-2 shrink-0">
+                          <template v-if="!item.personalizado">
+                            <button @click="decrementCartItem(item.lineId)" class="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300/80 text-zinc-700 flex items-center justify-center text-xs transition cursor-pointer">
+                              <i class="fas fa-minus"></i>
+                            </button>
+                            <input :value="item.cantidad" @change="setCartItemQty(item, $event)" type="number" min="1" step="1" aria-label="Cantidad" class="w-10 text-xs font-bold font-mono text-center bg-white border border-slate-200 rounded py-0.5 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <button @click="incrementCartItem(item.lineId)" class="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300/80 text-zinc-700 flex items-center justify-center text-xs transition cursor-pointer">
+                              <i class="fas fa-plus"></i>
+                            </button>
+                          </template>
+                          <button @click="openLineaModal(item)" class="w-6 h-6 rounded bg-indigo-50 text-indigo-600 hover:bg-indigo-100 flex items-center justify-center text-xs transition cursor-pointer ml-1" title="Personalizar cantidad y valor">
+                            <i class="fas fa-pencil-alt"></i>
                           </button>
-                          <span class="text-xs font-bold font-mono w-4 text-center">{{ item.cantidad }}</span>
-                          <button @click="incrementCartItem(item.productoId)" class="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300/80 text-zinc-700 flex items-center justify-center text-xs transition cursor-pointer">
-                            <i class="fas fa-plus"></i>
-                          </button>
-                          <button @click="removeFromCart(item.productoId)" class="w-6 h-6 rounded bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs transition cursor-pointer ml-1">
+                          <button @click="removeFromCart(item.lineId)" class="w-6 h-6 rounded bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs transition cursor-pointer">
                             <i class="fas fa-trash-can"></i>
                           </button>
                         </div>
@@ -580,14 +609,36 @@
                     </div>
 
                     
-                      <div class="space-y-1 font-semibold text-xs leading-none">
-                      <div class="flex justify-between text-slate-800 text-sm mt-1">
-                        <span>Importe total:</span>
-                        <span class="font-mono text-base font-extrabold text-indigo-600">${{ cartPriceTotal.toFixed(2) }}</span>
+                    <div v-if="cart.length > 0" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" :checked="posAjusteActivo" @change="toggleAjuste($event)" class="w-4 h-4 text-indigo-600 rounded border-slate-300">
+                        <span class="text-xs font-bold text-slate-700">Ajustar valor total final</span>
+                      </label>
+                      <div v-if="posAjusteActivo" class="pt-2 border-t border-slate-200 mt-2">
+                        <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Total final a cobrar ($)</label>
+                        <input v-model.number="posTotalFinal" type="number" min="0" class="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs font-mono focus:ring-1 focus:ring-indigo-500" placeholder="Ej. 150000">
                       </div>
                     </div>
 
-                    <div v-if="cart.length > 0" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                      <div class="space-y-1 font-semibold text-xs leading-none">
+                      <div v-if="cartAjuste !== 0" class="flex justify-between text-slate-500">
+                        <span>Subtotal:</span>
+                        <span class="font-mono">{{ money(cartSubtotal) }}</span>
+                      </div>
+                      <div v-if="cartAjuste !== 0" class="flex justify-between text-slate-500">
+                        <span>{{ cartAjuste < 0 ? 'Descuento:' : 'Ajuste:' }}</span>
+                        <span class="font-mono">{{ money(cartAjuste) }}</span>
+                      </div>
+                      <div class="flex justify-between text-slate-800 text-sm mt-1">
+                        <span>Importe total:</span>
+                        <span class="font-mono text-base font-extrabold text-indigo-600">{{ money(cartPriceTotal) }}</span>
+                      </div>
+                      <div v-if="cart.length > 0 && cartPriceTotal < cartCostTotal" class="text-[10px] font-bold text-red-600 pt-1">
+                        <i class="fas fa-triangle-exclamation mr-0.5"></i> El total está por debajo del costo ({{ money(cartCostTotal) }}).
+                      </div>
+                    </div>
+
+                    <div v-if="cart.length > 0 && cotizacionModo !== 'editar'" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                       <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" v-model="posPagoCompleto" class="w-4 h-4 text-indigo-600 rounded border-slate-300">
                         <span class="text-xs font-bold text-slate-700">Pago Completo (Cerrar Venta)</span>
@@ -595,15 +646,15 @@
                       <div v-if="!posPagoCompleto" class="pt-2 border-t border-slate-200 mt-2">
                         <label class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Abono Inicial del Cliente ($)</label>
                         <input v-model.number="posAbono" type="number" min="0" :max="cartPriceTotal" class="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs font-mono focus:ring-1 focus:ring-indigo-500" placeholder="Ej. 10000">
-                        <p class="text-[10px] text-amber-600 font-semibold mt-1">Saldo a deber: ${{ (cartPriceTotal - posAbono).toFixed(2) }}</p>
+                        <p class="text-[10px] text-amber-600 font-semibold mt-1">Saldo a deber: {{ money(cartPriceTotal - (Number(posAbono) || 0)) }}</p>
                       </div>
                     </div>
 
                     <div class="space-y-2">
-                      <button @click="processCotizacion" :disabled="cart.length === 0" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs">
-                        <i class="fas fa-file-invoice"></i> Guardar Cotización
+                      <button v-if="cotizacionModo !== 'convertir'" @click="processCotizacion" :disabled="cart.length === 0 || !ajusteValido" class="w-full py-2.5 font-bold rounded-xl border shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs" :class="cotizacionModo === 'editar' ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'">
+                        <i class="fas fa-file-invoice"></i> {{ cotizacionModo === 'editar' ? 'Actualizar Cotización' : 'Guardar Cotización' }}
                       </button>
-                      <button @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit || (!posPagoCompleto && posAbono < 0)" class="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-xs">
+                      <button v-if="cotizacionModo !== 'editar'" @click="processSalesCheckout" :disabled="cart.length === 0 || isStockDeficit || !ajusteValido || (!posPagoCompleto && posAbono < 0)" class="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer text-xs">
                         <i class="fas" :class="posPagoCompleto ? 'fa-cash-register' : 'fa-clipboard-list'"></i>
                         {{ posPagoCompleto ? 'Procesar Venta Completa' : 'Registrar Encargo (Descuenta Stock)' }}
                       </button>
@@ -641,7 +692,10 @@
                         </td>
                       </tr>
                       <tr v-for="c in cotizaciones" :key="c.id" class="hover:bg-slate-50/80 transition duration-150">
-                        <td class="py-3 px-6 font-mono font-bold text-slate-900 text-xs">{{ c.id }}</td>
+                        <td class="py-3 px-6 font-mono font-bold text-slate-900 text-xs">
+                          {{ c.id }}
+                          <span v-if="c.estado === 'convertida'" class="block mt-1 w-max font-sans bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded font-bold">Convertida a {{ c.convertida_a }}</span>
+                        </td>
                         <td class="py-3 px-6 text-slate-400 text-xs">{{ formatDateStrict(c.fecha) }}</td>
                         <td class="py-3 px-6 font-medium text-slate-700">
                           {{ c.cliente?.nombre || 'General / Sin especificar' }}
@@ -649,14 +703,20 @@
                         </td>
                         <td class="py-3 px-6">
                           <span v-for="(p, idx) in c.productos" :key="idx" class="inline-block bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded mr-1">
-                            {{ p.cantidad }}x {{ p.nombre }}
+                            {{ formatQty(docQty(p)) }}x {{ p.nombre }}
                           </span>
                         </td>
-                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-bold">${{ (c.total_cotizado || 0).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-bold">{{ money((c.total_cotizado || 0)) }}</td>
                         <td class="py-3 px-6 text-right">
                           <div class="flex items-center justify-end gap-2">
                             <button @click="openPdfPreview(c, 'cotizacion')" class="px-2.5 py-1 text-xs font-semibold bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-100 transition flex items-center gap-1 cursor-pointer">
                               <i class="fas fa-print text-[10px]"></i> Ver / PDF
+                            </button>
+                            <button v-if="c.estado !== 'convertida'" @click="iniciarEdicionCotizacion(c)" class="px-2.5 py-1 text-xs font-semibold bg-blue-50 border border-blue-100 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center gap-1 cursor-pointer">
+                              <i class="fas fa-edit text-[10px]"></i> Editar
+                            </button>
+                            <button v-if="c.estado !== 'convertida'" @click="iniciarConversionCotizacion(c)" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-100 transition flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                              <i class="fas fa-arrow-right text-[10px]"></i> Pedido / Venta
                             </button>
                             <button @click="deleteCotizacion(c.id)" class="w-7 h-7 bg-red-50 text-red-500 rounded-lg border border-red-100 hover:bg-red-100 transition flex items-center justify-center cursor-pointer">
                               <i class="fas fa-trash-can text-xs"></i>
@@ -705,10 +765,10 @@
                         </td>
                         <td class="py-3 px-6">
                           <span v-for="(p, idx) in v.productos" :key="idx" class="inline-block bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded mr-1">
-                            {{ p.cantidad }}x {{ p.nombre }}
+                            {{ formatQty(docQty(p)) }}x {{ p.nombre }}
                           </span>
                         </td>
-                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-bold">${{ (v.total_venta || 0).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right font-mono text-slate-800 font-bold">{{ money((v.total_venta || 0)) }}</td>
                         <td class="py-3 px-6 text-right">
                           <div class="flex items-center justify-end gap-2">
                             <button @click="openPdfPreview(v, 'factura')" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-100 transition flex items-center gap-1 cursor-pointer">
@@ -746,12 +806,12 @@
                         <span class="font-mono font-bold text-slate-900 text-xs block">{{ e.id }}</span>
                         <span class="font-medium text-slate-600 text-xs">{{ e.cliente?.nombre || 'Sin nombre' }}</span>
                       </td>
-                      <td class="py-3 px-6"><span v-for="p in e.productos" :key="p.id" class="inline-block bg-slate-100 text-[11px] px-2 py-0.5 rounded mr-1">{{ p.cantidad }}x {{ p.nombre }}</span></td>
+                      <td class="py-3 px-6"><span v-for="(p, idx) in e.productos" :key="idx" class="inline-block bg-slate-100 text-[11px] px-2 py-0.5 rounded mr-1">{{ formatQty(docQty(p)) }}x {{ p.nombre }}</span></td>
                       <td class="py-3 px-6 text-right text-xs">
-                        <p class="text-emerald-600 font-bold">Abonó: ${{ e.abono.toFixed(2) }}</p>
-                        <p class="text-slate-500">De ${{ e.total_venta.toFixed(2) }}</p>
+                        <p class="text-emerald-600 font-bold">Abonó: {{ money(e.abono) }}</p>
+                        <p class="text-slate-500">De {{ money(e.total_venta) }}</p>
                       </td>
-                      <td class="py-3 px-6 text-right font-mono font-bold text-amber-600">${{ (e.total_venta - e.abono).toFixed(2) }}</td>
+                      <td class="py-3 px-6 text-right font-mono font-bold text-amber-600">{{ money(e.total_venta - (Number(e.abono) || 0)) }}</td>
                       <td class="py-3 px-6 text-center">
                         <button @click="iniciarEdicionEncargo(e)" class="px-3 py-1.5 text-xs font-semibold bg-blue-50 border border-blue-100 text-blue-600 rounded-lg hover:bg-blue-100 transition cursor-pointer mr-2">
                           <i class="fas fa-edit mr-1"></i> Editar
@@ -817,7 +877,7 @@
                           <p v-if="m.notas" class="text-[10px] text-slate-400 mt-0.5 italic">"{{ m.notas }}"</p>
                         </td>
                         <td class="py-3 px-6 text-right font-mono text-slate-800 font-bold">-{{ m.cantidad }} {{ m.unidad }}</td>
-                        <td class="py-3 px-6 text-right font-mono text-slate-500">${{ (m.costo_total || 0).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right font-mono text-slate-500">{{ money((m.costo_total || 0)) }}</td>
                         <td class="py-3 px-6 text-right">
                           <button @click="deleteMovimiento(m)" class="w-7 h-7 bg-red-50 text-red-500 rounded-lg border border-red-100 hover:bg-red-100 transition flex items-center justify-center cursor-pointer ml-auto" title="Revertir movimiento">
                             <i class="fas fa-rotate-left text-xs"></i>
@@ -982,11 +1042,11 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-[11px] text-slate-700">
-                  <tr v-for="item in pdfPreviewModal.data.productos" :key="item.id">
+                  <tr v-for="(item, idx) in pdfPreviewModal.data.productos" :key="idx">
                     <td class="py-2.5 pr-4 font-semibold text-slate-800">{{ item.nombre }}</td>
-                    <td class="py-2.5 px-3 text-center font-mono font-medium">{{ item.cantidad }}</td>
-                    <td class="py-2.5 px-3 text-right font-mono">${{ item.precio_venta.toFixed(2) }}</td>
-                    <td class="py-2.5 pl-4 text-right font-mono font-bold text-slate-900">${{ (item.precio_venta * item.cantidad).toFixed(2) }}</td>
+                    <td class="py-2.5 px-3 text-center font-mono font-medium">{{ formatQty(docQty(item)) }}</td>
+                    <td class="py-2.5 px-3 text-right font-mono">{{ money(docUnit(item)) }}</td>
+                    <td class="py-2.5 pl-4 text-right font-mono font-bold text-slate-900">{{ money(docSubtotal(item)) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -995,11 +1055,15 @@
                 <div class="w-48 text-right space-y-1.5">
                   <div class="flex justify-between text-[11px] font-semibold text-slate-500">
                     <span>Subtotal:</span>
-                    <span class="font-mono">${{ (pdfPreviewModal.type === 'factura' ? pdfPreviewModal.data.total_venta : pdfPreviewModal.data.total_cotizado || 0).toFixed(2) }}</span>
+                    <span class="font-mono">{{ money(pdfSubtotal) }}</span>
+                  </div>
+                  <div v-if="pdfAjuste !== 0" class="flex justify-between text-[11px] font-semibold text-slate-500">
+                    <span>{{ pdfAjuste < 0 ? 'Descuento:' : 'Ajuste:' }}</span>
+                    <span class="font-mono">{{ money(pdfAjuste) }}</span>
                   </div>
                   <div class="flex justify-between text-slate-900 border-t border-slate-100 pt-1.5">
                     <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Total:</span>
-                    <span class="text-sm font-black font-mono">${{ (pdfPreviewModal.type === 'factura' ? pdfPreviewModal.data.total_venta : pdfPreviewModal.data.total_cotizado || 0).toFixed(2) }} COP</span>
+                    <span class="text-sm font-black font-mono">{{ money(pdfTotal) }} COP</span>
                   </div>
                 </div>
               </div>
@@ -1107,15 +1171,21 @@
                 <div>
                   <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Margen Neto</span>
                   <span class="text-sm font-extrabold text-indigo-600 font-mono inline-block mt-1">
-                    ${{ (productoModal.data.precio_venta - modalCalculatedTotalCost).toFixed(2) }} 
+                    {{ money((productoModal.data.precio_venta - modalCalculatedTotalCost)) }} 
                     ({{ modalCalculatedProfitPercent.toFixed(0) }}%)
                   </span>
                 </div>
                 <div>
                   <span class="text-slate-400 uppercase text-[10px] tracking-wider block">Costo Total</span>
-                  <span class="text-sm font-extrabold text-slate-800 font-mono inline-block mt-1">${{ modalCalculatedTotalCost.toFixed(2) }}</span>
+                  <span class="text-sm font-extrabold text-slate-800 font-mono inline-block mt-1">{{ money(modalCalculatedTotalCost) }}</span>
                 </div>
               </div>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Unidades por paquete</label>
+              <input v-model.number="productoModal.data.unidades_por_paquete" type="number" min="1" step="1" placeholder="1" class="w-full sm:w-40 px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              <p class="text-[11px] text-slate-400 mt-1">Una docena lleva 12; un producto por unidad lleva 1. Sirve para repartir la receta al personalizar cantidades.</p>
             </div>
 
             <div class="border-t border-slate-150 pt-4 space-y-3">
@@ -1156,7 +1226,7 @@
                   <div class="w-20 text-right pr-2">
                     <span class="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Subcosto</span>
                     <span class="text-xs font-mono font-bold text-slate-700">
-                      ${{ (rec.cantidad * getInsumoCostoUnit(rec.insumoId)).toFixed(2) }}
+                      {{ money((rec.cantidad * getInsumoCostoUnit(rec.insumoId))) }}
                     </span>
                   </div>
 
@@ -1178,6 +1248,68 @@
           </div>
         </div>
       </div>
+      <div v-if="lineaModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
+            <h3 class="text-base font-bold text-slate-800">{{ lineaModal.libre ? 'Concepto libre' : 'Personalizar línea' }}</h3>
+            <button @click="lineaModal.open = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer transition">
+              <i class="fas fa-xmark text-sm"></i>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4 overflow-y-auto flex-1">
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Descripción en el documento</label>
+              <input v-model="lineaModal.descripcion" type="text" :placeholder="lineaModal.libre ? 'Ej. Diseño personalizado' : 'Ej. Pines'" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition duration-150">
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Cantidad{{ lineaInfo.paquete > 1 ? ' (unidades sueltas)' : '' }}</label>
+              <input :value="lineaModal.unidades" @input="onLineaCantidad($event)" type="number" min="0" step="any" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              <p v-if="lineaInfo.paquete > 1" class="text-[11px] text-slate-400 mt-1">Equivale a {{ formatQty(lineaInfo.paquetes) }} paquetes de {{ lineaInfo.paquete }}.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Valor total ($)</label>
+                <input :value="lineaModal.total" @input="onLineaTotal($event)" type="number" min="0" step="any" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Precio por unidad ($)</label>
+                <input :value="lineaModal.unitario" @input="onLineaUnitario($event)" type="number" min="0" step="any" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div v-if="lineaModal.libre">
+              <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Costo total para ti ($, opcional)</label>
+              <input v-model.number="lineaModal.costo" type="number" min="0" step="any" class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-100/50 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+              <p class="text-[11px] text-slate-400 mt-1">Este concepto no descuenta inventario.</p>
+            </div>
+
+            <div class="rounded-xl p-3.5 border text-xs space-y-1" :class="lineaInfo.bajoCosto ? 'bg-red-50 border-red-100' : 'bg-slate-50 border-slate-100'">
+              <div v-if="lineaInfo.paquete > 1" class="flex justify-between text-slate-600"><span>Equivale por paquete:</span><span class="font-mono font-bold">{{ money(lineaInfo.precioPaquete) }}</span></div>
+              <div v-if="!lineaModal.libre" class="flex justify-between text-slate-600"><span>Valor con precio de catálogo:</span><span class="font-mono font-bold">{{ money(lineaInfo.valorLista) }}</span></div>
+              <div v-if="!lineaModal.libre" class="flex justify-between text-slate-600"><span>Diferencia:</span><span class="font-mono font-bold">{{ money(lineaInfo.diferencia) }}</span></div>
+              <div class="flex justify-between text-slate-600"><span>Costo estimado:</span><span class="font-mono font-bold">{{ money(lineaInfo.costo) }}</span></div>
+              <div class="flex justify-between font-bold" :class="lineaInfo.bajoCosto ? 'text-red-600' : 'text-emerald-600'"><span>Ganancia:</span><span class="font-mono">{{ money(lineaInfo.ganancia) }} ({{ lineaInfo.margen.toFixed(0) }}%)</span></div>
+              <p v-if="lineaInfo.bajoCosto" class="font-bold text-red-600 pt-1"><i class="fas fa-triangle-exclamation mr-1"></i> Este valor está por debajo del costo.</p>
+            </div>
+          </div>
+
+          <div class="p-6 border-t border-slate-150 bg-slate-50/50 flex flex-wrap justify-end gap-3">
+            <button v-if="lineaModal.personalizado && !lineaModal.libre" @click="restaurarLinea" class="py-2 px-3 mr-auto bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Volver a precio de catálogo
+            </button>
+            <button @click="lineaModal.open = false" class="py-2 px-4 bg-slate-150 hover:bg-slate-200 text-slate-600 rounded-xl font-semibold text-xs cursor-pointer transition">
+              Cancelar
+            </button>
+            <button @click="saveLinea" class="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-md shadow-indigo-600/15 cursor-pointer transition">
+              Guardar línea
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="movimientoModal.open" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center py-6 px-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
           <div class="p-6 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
@@ -1302,6 +1434,10 @@
           const posAbono = ref(0);
           const editingEncargoId = ref(null);
           const originalEncargoData = ref(null);
+          const cotizacionActivaId = ref(null);
+          const cotizacionModo = ref(null); // 'editar' | 'convertir'
+          const posAjusteActivo = ref(false);
+          const posTotalFinal = ref(0);
           const insumoSearchQuery = ref('');
           const posSearchQuery = ref('');
           const dateFilter = ref('current_month');
@@ -1334,6 +1470,22 @@
             data: { tipo: 'merma', insumoId: '', cantidad: null, notas: '' }
           });
 
+          const lineaModal = reactive({
+            open: false,
+            lineId: null,
+            productoId: null,
+            libre: false,
+            nueva: false,
+            personalizado: false,
+            descripcion: '',
+            unidades: 1,
+            total: 0,
+            unitario: 0,
+            unitarioExacto: 0,
+            costo: 0,
+            modo: 'unitario'
+          });
+
           const firebaseSetupModal = reactive({
             open: false,
             configString: ''
@@ -1352,7 +1504,9 @@
             { id: 'pla_roj', nombre: 'Filamento PLA Eco Rojo', unidad_medida: 'gramos', costo_por_unidad: 0.025, stock_actual: 920, stock_minimo: 300 },
             { id: 'base_polo', nombre: 'Camiseta Algodón Base (Prensa)', unidad_medida: 'unidad', costo_por_unidad: 3.50, stock_actual: 12, stock_minimo: 8 },
             { id: 'fil_dtf', nombre: 'Pintura/Película Estampado DTF', unidad_medida: 'cm2', costo_por_unidad: 0.015, stock_actual: 1900, stock_minimo: 400 },
-            { id: 'empaque_ec', nombre: 'Caja Regalo Cartón Micro', unidad_medida: 'unidad', costo_por_unidad: 0.65, stock_actual: 32, stock_minimo: 12 }
+            { id: 'empaque_ec', nombre: 'Caja Regalo Cartón Micro', unidad_medida: 'unidad', costo_por_unidad: 0.65, stock_actual: 32, stock_minimo: 12 },
+            { id: 'demo_herraje_pin', nombre: 'Herraje pines', unidad_medida: 'unidad', costo_por_unidad: 400, stock_actual: 300, stock_minimo: 50 },
+            { id: 'demo_pla_pin', nombre: 'Filamento PLA', unidad_medida: 'gramos', costo_por_unidad: 5, stock_actual: 2000, stock_minimo: 300 }
           ];
 
           const demoProductos = [
@@ -1374,6 +1528,28 @@
               receta: [
                 { insumoId: 'base_polo', cantidad: 1 },
                 { insumoId: 'fil_dtf', cantidad: 140 }
+              ]
+            },
+            {
+              id: 'demo_pin_unidad',
+              nombre: 'Pines Impresos en 3D',
+              precio_venta: 5000,
+              costo_operativo: 0,
+              unidades_por_paquete: 1,
+              receta: [
+                { insumoId: 'demo_herraje_pin', cantidad: 1 },
+                { insumoId: 'demo_pla_pin', cantidad: 4 }
+              ]
+            },
+            {
+              id: 'demo_pin_docena',
+              nombre: 'Docena Pines',
+              precio_venta: 25000,
+              costo_operativo: 500,
+              unidades_por_paquete: 12,
+              receta: [
+                { insumoId: 'demo_herraje_pin', cantidad: 12 },
+                { insumoId: 'demo_pla_pin', cantidad: 48 }
               ]
             }
           ];
@@ -1433,6 +1609,34 @@
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const year = d.getFullYear();
             return `${day}/${month}/${year}`;
+          }
+
+          const pesosFormat = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
+
+          function money(value) {
+            const n = Number(value) || 0;
+            return (n < 0 ? '-$' : '$') + pesosFormat.format(Math.abs(n));
+          }
+
+          function formatQty(value) {
+            return pesosFormat.format(Number(value) || 0);
+          }
+
+          function round2(value) {
+            return Math.round((Number(value) || 0) * 100) / 100;
+          }
+
+          // Lectura de líneas guardadas. Los documentos antiguos solo traen precio_venta y cantidad.
+          function docQty(linea) {
+            return linea.cantidad_doc !== undefined ? linea.cantidad_doc : linea.cantidad;
+          }
+
+          function docUnit(linea) {
+            return linea.precio_unit_doc !== undefined ? linea.precio_unit_doc : (Number(linea.precio_venta) || 0);
+          }
+
+          function docSubtotal(linea) {
+            return linea.subtotal !== undefined ? linea.subtotal : (Number(linea.precio_venta) || 0) * (Number(linea.cantidad) || 0);
           }
 
           function getNextId(collectionArray, prefix) {
@@ -1636,48 +1840,104 @@
             return matchIndex ? Number(matchIndex.precio_venta) : 0;
           }
 
+          function findProducto(id) {
+            return productos.value.find(p => p.id === id);
+          }
+
+          function getUnidadesPaquete(prod) {
+            if (!prod) return 1;
+            const n = Number(prod.unidades_por_paquete);
+            if (n >= 1) return n;
+            return /docena/i.test(prod.nombre || '') ? 12 : 1;
+          }
+
+          function nuevaLineaId() {
+            return 'l_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          }
+
+          function cartLineQty(item) {
+            return item.personalizado ? (Number(item.unidades) || 0) : item.cantidad;
+          }
+
+          function cartLineTotal(item) {
+            if (item.personalizado) return Number(item.total) || 0;
+            const precio = item.precio_doc !== undefined ? item.precio_doc : getProductoPrice(item.productoId);
+            return precio * item.cantidad;
+          }
+
+          function cartLineUnit(item) {
+            const qty = cartLineQty(item);
+            return qty > 0 ? cartLineTotal(item) / qty : 0;
+          }
+
+          function cartLineCost(item) {
+            if (item.libre) return Number(item.costo) || 0;
+            const prod = findProducto(item.productoId);
+            if (!prod) return (Number(item.costo_unit_doc) || 0) * item.cantidad;
+            return calculateTotalProductCost(prod) * item.cantidad;
+          }
+
+          function cartLineBaseName(item) {
+            return getProductoName(item.productoId) || item.nombre_doc || '(Producto fuera del catálogo)';
+          }
+
+          function cartLineName(item) {
+            return item.descripcion || cartLineBaseName(item);
+          }
+
+          function cartLineBajoCosto(item) {
+            return cartLineTotal(item) < cartLineCost(item);
+          }
+
+          const cartSubtotal = computed(() => {
+            return cart.value.reduce((sum, item) => sum + cartLineTotal(item), 0);
+          });
+
+          const ajusteValido = computed(() => {
+            if (!posAjusteActivo.value) return true;
+            return typeof posTotalFinal.value === 'number' && posTotalFinal.value >= 0;
+          });
+
           const cartPriceTotal = computed(() => {
-            return cart.value.reduce((sum, item) => sum + (getProductoPrice(item.productoId) * item.cantidad), 0);
+            return posAjusteActivo.value && ajusteValido.value ? posTotalFinal.value : cartSubtotal.value;
+          });
+
+          const cartAjuste = computed(() => round2(cartPriceTotal.value - cartSubtotal.value));
+
+          const cartItemCount = computed(() => {
+            return cart.value.reduce((sum, item) => sum + cartLineQty(item), 0);
           });
 
           const cartCostTotal = computed(() => {
-            return cart.value.reduce((sum, item) => {
-              const matchedProd = productos.value.find(p => p.id === item.productoId);
-              if (!matchedProd) return sum;
-              return sum + (calculateTotalProductCost(matchedProd) * item.cantidad);
-            }, 0);
+            return cart.value.reduce((sum, item) => sum + cartLineCost(item), 0);
           });
 
-          const consolidatedCartRequiredIngredients = computed(() => {
-            const required = {};
-            cart.value.forEach(item => {
-              const p = productos.value.find(prod => prod.id === item.productoId);
-              if (p && p.receta) {
-                p.receta.forEach(ing => {
-                  const neededAmount = (ing.cantidad || 0) * item.cantidad;
-                  required[ing.insumoId] = (required[ing.insumoId] || 0) + neededAmount;
+          // Sirve para líneas del carrito (productoId) y líneas guardadas (id).
+          function calcularConsumo(lineas) {
+            const consumo = {};
+            lineas.forEach(linea => {
+              const prod = findProducto(linea.productoId !== undefined ? linea.productoId : linea.id);
+              if (prod && prod.receta) {
+                prod.receta.forEach(ing => {
+                  consumo[ing.insumoId] = (consumo[ing.insumoId] || 0) + (ing.cantidad || 0) * linea.cantidad;
                 });
               }
             });
-            return required;
-          });
+            Object.keys(consumo).forEach(id => {
+              consumo[id] = Math.round(consumo[id] * 10000) / 10000;
+            });
+            return consumo;
+          }
+
+          const consolidatedCartRequiredIngredients = computed(() => calcularConsumo(cart.value));
 
           const stockDeficitReport = computed(() => {
             const req = consolidatedCartRequiredIngredients.value;
             const deficitList = [];
             
-            let refundMap = {};
-            if (editingEncargoId.value && originalEncargoData.value) {
-              originalEncargoData.value.productos.forEach(item => {
-                const p = productos.value.find(prod => prod.id === item.id);
-                if (p && p.receta) {
-                  p.receta.forEach(ing => {
-                    const neededAmount = (ing.cantidad || 0) * item.cantidad;
-                    refundMap[ing.insumoId] = (refundMap[ing.insumoId] || 0) + neededAmount;
-                  });
-                }
-              });
-            }
+            const refundMap = (editingEncargoId.value && originalEncargoData.value)
+              ? calcularConsumo(originalEncargoData.value.productos)
+              : {};
 
             Object.keys(req).forEach(id => {
               const ism = insumos.value.find(i => i.id === id);
@@ -1697,31 +1957,264 @@
           const isStockDeficit = computed(() => stockDeficitReport.value.length > 0);
 
           function addToCart(prod) {
-            const existingItem = cart.value.find(i => i.productoId === prod.id);
+            const existingItem = cart.value.find(i => i.productoId === prod.id && !i.personalizado && i.precio_doc === undefined);
             if (existingItem) {
               existingItem.cantidad++;
             } else {
-              cart.value.push({ productoId: prod.id, cantidad: 1 });
+              cart.value.push({ lineId: nuevaLineaId(), productoId: prod.id, cantidad: 1 });
             }
           }
 
-          function incrementCartItem(id) {
-            const hit = cart.value.find(i => i.productoId === id);
+          function incrementCartItem(lineId) {
+            const hit = cart.value.find(i => i.lineId === lineId);
             if (hit) hit.cantidad++;
           }
 
-          function decrementCartItem(id) {
-            const hit = cart.value.find(i => i.productoId === id);
+          function decrementCartItem(lineId) {
+            const hit = cart.value.find(i => i.lineId === lineId);
             if (hit) {
               hit.cantidad--;
               if (hit.cantidad <= 0) {
-                removeFromCart(id);
+                removeFromCart(lineId);
               }
             }
           }
 
-          function removeFromCart(id) {
-            cart.value = cart.value.filter(i => i.productoId !== id);
+          function setCartItemQty(item, event) {
+            const n = parseFloat(event.target.value);
+            if (n > 0) {
+              item.cantidad = n;
+            } else {
+              event.target.value = item.cantidad;
+            }
+          }
+
+          function removeFromCart(lineId) {
+            cart.value = cart.value.filter(i => i.lineId !== lineId);
+            if (cart.value.length === 0) posAjusteActivo.value = false;
+          }
+
+          function toggleAjuste(event) {
+            posAjusteActivo.value = event.target.checked;
+            if (event.target.checked) posTotalFinal.value = round2(cartSubtotal.value);
+          }
+
+          function resetPos() {
+            cart.value = [];
+            posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
+            posPagoCompleto.value = true;
+            posAbono.value = 0;
+            posAjusteActivo.value = false;
+            posTotalFinal.value = 0;
+            editingEncargoId.value = null;
+            originalEncargoData.value = null;
+            cotizacionActivaId.value = null;
+            cotizacionModo.value = null;
+          }
+
+          function descripcionSugerida(prod) {
+            const nombre = prod ? prod.nombre : '';
+            if (getUnidadesPaquete(prod) <= 1) return nombre;
+            const limpio = nombre.replace(/^\s*docena\s+(de\s+)?/i, '').trim();
+            return limpio ? limpio.charAt(0).toUpperCase() + limpio.slice(1) : nombre;
+          }
+
+          function paqueteDeLinea(prod, item) {
+            if (prod) return getUnidadesPaquete(prod);
+            // Producto borrado del catálogo: se conserva la relación que ya traía la línea.
+            if (item && item.personalizado && item.cantidad > 0 && item.unidades > 0) return item.unidades / item.cantidad;
+            return 1;
+          }
+
+          function openLineaModal(item) {
+            const prod = item.libre ? null : findProducto(item.productoId);
+            const paquete = paqueteDeLinea(prod, item);
+            const unidades = item.personalizado ? item.unidades : item.cantidad * paquete;
+            const total = cartLineTotal(item);
+            Object.assign(lineaModal, {
+              open: true,
+              lineId: item.lineId,
+              productoId: item.productoId,
+              libre: !!item.libre,
+              nueva: false,
+              personalizado: !!item.personalizado,
+              descripcion: item.descripcion || descripcionSugerida(prod) || item.nombre_doc || '',
+              unidades,
+              total: round2(total),
+              unitario: unidades > 0 ? round2(total / unidades) : 0,
+              unitarioExacto: unidades > 0 ? total / unidades : 0,
+              costo: Number(item.costo) || 0,
+              modo: 'unitario'
+            });
+          }
+
+          function addConceptoLibre() {
+            Object.assign(lineaModal, {
+              open: true,
+              lineId: null,
+              productoId: null,
+              libre: true,
+              nueva: true,
+              personalizado: true,
+              descripcion: '',
+              unidades: 1,
+              total: 0,
+              unitario: 0,
+              unitarioExacto: 0,
+              costo: 0,
+              modo: 'total'
+            });
+          }
+
+          function onLineaCantidad(event) {
+            const raw = event.target.value;
+            lineaModal.unidades = raw === '' ? '' : parseFloat(raw);
+            const qty = Number(lineaModal.unidades) || 0;
+            if (lineaModal.modo === 'unitario') {
+              lineaModal.total = round2(qty * lineaModal.unitarioExacto);
+            } else {
+              lineaModal.unitarioExacto = qty > 0 ? (Number(lineaModal.total) || 0) / qty : 0;
+              lineaModal.unitario = round2(lineaModal.unitarioExacto);
+            }
+          }
+
+          function onLineaTotal(event) {
+            const raw = event.target.value;
+            lineaModal.modo = 'total';
+            lineaModal.total = raw === '' ? '' : parseFloat(raw);
+            const qty = Number(lineaModal.unidades) || 0;
+            lineaModal.unitarioExacto = qty > 0 ? (Number(lineaModal.total) || 0) / qty : 0;
+            lineaModal.unitario = round2(lineaModal.unitarioExacto);
+          }
+
+          function onLineaUnitario(event) {
+            const raw = event.target.value;
+            lineaModal.modo = 'unitario';
+            lineaModal.unitario = raw === '' ? '' : parseFloat(raw);
+            lineaModal.unitarioExacto = Number(lineaModal.unitario) || 0;
+            lineaModal.total = round2((Number(lineaModal.unidades) || 0) * lineaModal.unitarioExacto);
+          }
+
+          const lineaInfo = computed(() => {
+            const qty = Number(lineaModal.unidades) || 0;
+            const total = Number(lineaModal.total) || 0;
+            const item = cart.value.find(i => i.lineId === lineaModal.lineId);
+            const prod = lineaModal.libre ? null : findProducto(lineaModal.productoId);
+            const paquete = lineaModal.libre ? 1 : paqueteDeLinea(prod, item);
+            const paquetes = qty / paquete;
+            let costo = Number(lineaModal.costo) || 0;
+            if (!lineaModal.libre) {
+              costo = prod ? calculateTotalProductCost(prod) * paquetes : (Number(item && item.costo_unit_doc) || 0) * paquetes;
+            }
+            const valorLista = prod ? Number(prod.precio_venta) * paquetes : 0;
+            const ganancia = total - costo;
+            return {
+              paquete,
+              paquetes,
+              precioPaquete: paquetes > 0 ? total / paquetes : 0,
+              valorLista,
+              diferencia: total - valorLista,
+              costo,
+              ganancia,
+              margen: total > 0 ? (ganancia / total) * 100 : 0,
+              bajoCosto: total < costo
+            };
+          });
+
+          function saveLinea() {
+            const descripcion = String(lineaModal.descripcion || '').trim();
+            const unidades = Number(lineaModal.unidades);
+            const total = lineaModal.total === '' ? NaN : Number(lineaModal.total);
+            if (!descripcion) { alert("Escribe la descripción que debe aparecer en el documento."); return; }
+            if (!(unidades > 0)) { alert("La cantidad debe ser mayor a 0."); return; }
+            if (!(total >= 0)) { alert("Escribe un valor total válido."); return; }
+
+            if (lineaModal.libre) {
+              const datos = { descripcion, unidades, total, cantidad: unidades, costo: Number(lineaModal.costo) || 0 };
+              if (lineaModal.nueva) {
+                cart.value.push({ lineId: nuevaLineaId(), productoId: null, libre: true, personalizado: true, ...datos });
+              } else {
+                Object.assign(cart.value.find(i => i.lineId === lineaModal.lineId), datos);
+              }
+            } else {
+              const item = cart.value.find(i => i.lineId === lineaModal.lineId);
+              const paquete = paqueteDeLinea(findProducto(item.productoId), item);
+              Object.assign(item, { personalizado: true, descripcion, unidades, total, cantidad: unidades / paquete });
+              delete item.precio_doc;
+            }
+            lineaModal.open = false;
+          }
+
+          function restaurarLinea() {
+            const item = cart.value.find(i => i.lineId === lineaModal.lineId);
+            if (item) {
+              item.cantidad = Math.max(1, Math.ceil(item.cantidad));
+              item.personalizado = false;
+              delete item.unidades;
+              delete item.total;
+              delete item.descripcion;
+              delete item.precio_doc;
+            }
+            lineaModal.open = false;
+          }
+
+          // Convierte el carrito en las líneas que se guardan en cotizaciones, pedidos y facturas.
+          function construirLineasDoc() {
+            return cart.value.map(item => {
+              const prod = item.libre ? null : findProducto(item.productoId);
+              const subtotal = cartLineTotal(item);
+              const linea = {
+                id: item.libre ? item.lineId : item.productoId,
+                nombre: item.personalizado ? item.descripcion : cartLineBaseName(item),
+                precio_venta: item.cantidad > 0 ? subtotal / item.cantidad : 0,
+                cantidad: item.cantidad,
+                subtotal,
+                costo_total: cartLineCost(item)
+              };
+              if (item.personalizado) {
+                linea.personalizado = true;
+                linea.cantidad_doc = item.unidades;
+                linea.precio_unit_doc = item.unidades > 0 ? subtotal / item.unidades : 0;
+                if (prod) linea.valor_lista = Number(prod.precio_venta) * item.cantidad;
+              }
+              if (item.libre) linea.libre = true;
+              return linea;
+            });
+          }
+
+          // Devuelve al carrito las líneas guardadas, conservando el precio pactado.
+          function cargarLineasEnCarrito(doc, total) {
+            const sinCatalogo = [];
+            cart.value = (doc.productos || []).map(linea => {
+              const base = {
+                lineId: nuevaLineaId(),
+                productoId: linea.libre ? null : linea.id,
+                cantidad: linea.cantidad,
+                nombre_doc: linea.nombre,
+                costo_unit_doc: linea.cantidad > 0 ? (Number(linea.costo_total) || 0) / linea.cantidad : 0
+              };
+              if (!linea.libre && !findProducto(linea.id)) sinCatalogo.push(linea.nombre);
+              if (linea.libre) {
+                return { ...base, libre: true, personalizado: true, descripcion: linea.nombre, unidades: docQty(linea), total: docSubtotal(linea), costo: Number(linea.costo_total) || 0 };
+              }
+              if (linea.personalizado) {
+                return { ...base, personalizado: true, descripcion: linea.nombre, unidades: docQty(linea), total: docSubtotal(linea) };
+              }
+              return { ...base, precio_doc: Number(linea.precio_venta) || 0 };
+            });
+
+            posCliente.nombre = doc.cliente?.nombre || '';
+            posCliente.telefono = doc.cliente?.telefono || '';
+            posCliente.email = doc.cliente?.email || '';
+
+            if (doc.ajuste_total) {
+              posAjusteActivo.value = true;
+              posTotalFinal.value = total;
+            }
+
+            if (sinCatalogo.length > 0) {
+              alert(`Estos productos ya no están en el catálogo: ${sinCatalogo.join(', ')}.\n\nSe conserva su precio, pero no se mueve inventario por ellos.`);
+            }
           }
 
           function openMovimientoModal() {
@@ -1890,7 +2383,7 @@
               ventas.value = JSON.parse(localVents);
               cotizaciones.value = JSON.parse(localQuotes);
               movimientos.value = JSON.parse(localMovs);
-              encargos.value = JSON.parse(localEncargos);
+              encargos.value = JSON.parse(localEncargos || '[]');
             } else {
               insumos.value = JSON.parse(JSON.stringify(demoInsumos));
               productos.value = JSON.parse(JSON.stringify(demoProductos));
@@ -1917,6 +2410,7 @@
           let unsubscribeVentas = null;
           let unsubscribeCotizaciones = null;
           let unsubscribeMovimientos = null;
+          let unsubscribeEncargos = null;
 
           function subscribeToFirestore() {
             if (!db.value || !user.value) return;
@@ -2096,8 +2590,9 @@
           }
 
           async function sumarAbono(encargo) {
-            const deudaActual = encargo.total_venta - encargo.abono;
-            const extraStr = prompt(`Deuda pendiente: $${deudaActual.toFixed(2)}\n\n¿Cuánto dinero EXTRA está abonando el cliente en este momento?`);
+            const abonoActual = Number(encargo.abono) || 0;
+            const deudaActual = encargo.total_venta - abonoActual;
+            const extraStr = prompt(`Deuda pendiente: ${money(deudaActual)}\n\n¿Cuánto dinero EXTRA está abonando el cliente en este momento?`);
             if (!extraStr) return;
             
             const extraNum = parseFloat(extraStr);
@@ -2108,7 +2603,7 @@
               alert("El abono no puede ser mayor a la deuda pendiente."); return;
             }
 
-            const nuevoAbono = encargo.abono + extraNum;
+            const nuevoAbono = abonoActual + extraNum;
 
             if (isDemoMode.value) {
               const enc = encargos.value.find(e => e.id === encargo.id);
@@ -2126,6 +2621,7 @@
             if (prod && prod.id) {
               productoModal.isEditing = true;
               productoModal.data = JSON.parse(JSON.stringify(prod));
+              productoModal.data.unidades_por_paquete = getUnidadesPaquete(prod);
             } else {
               productoModal.isEditing = false;
               productoModal.data = {
@@ -2133,6 +2629,7 @@
                 nombre: '',
                 precio_venta: 0,
                 costo_operativo: 0,
+                unidades_por_paquete: 1,
                 receta: []
               };
             }
@@ -2151,6 +2648,11 @@
             const data = productoModal.data;
             if (!data.nombre || data.precio_venta <= 0 || data.costo_operativo < 0) {
               alert("Por favor introduzca especificaciones de precio y costo válidas.");
+              return;
+            }
+
+            if (!(Number(data.unidades_por_paquete) >= 1)) {
+              alert("Las unidades por paquete deben ser 1 o más.");
               return;
             }
 
@@ -2203,23 +2705,18 @@
 
           async function processCotizacion() {
             if (cart.value.length === 0) return;
+            if (!ajusteValido.value) { alert("Escribe un total final válido."); return; }
 
-            const currentId = getNextId(cotizaciones.value, 'COT');
-            
-            const recProducts = cart.value.map(item => {
-              const baseValue = productos.value.find(p => p.id === item.productoId);
-              return {
-                id: item.productoId,
-                nombre: baseValue.nombre,
-                precio_venta: baseValue.precio_venta,
-                cantidad: item.cantidad
-              };
-            });
+            const editando = cotizacionModo.value === 'editar' && cotizacionActivaId.value;
+            const original = editando ? cotizaciones.value.find(q => q.id === cotizacionActivaId.value) : null;
+            const currentId = editando ? cotizacionActivaId.value : getNextId(cotizaciones.value, 'COT');
 
             const quoteDoc = {
               id: currentId,
-              fecha: new Date().toISOString(),
-              productos: recProducts,
+              fecha: original ? original.fecha : new Date().toISOString(),
+              productos: construirLineasDoc(),
+              subtotal_lineas: cartSubtotal.value,
+              ajuste_total: cartAjuste.value,
               total_cotizado: cartPriceTotal.value,
               total_costo_estimado: cartCostTotal.value,
               cliente: {
@@ -2228,21 +2725,24 @@
                 email: posCliente.email.trim()
               }
             };
+            if (editando) quoteDoc.fecha_actualizacion = new Date().toISOString();
+
+            const mensaje = editando ? `¡Cotización ${currentId} actualizada!` : `¡Cotización guardada! Código: ${currentId}.`;
 
             if (isDemoMode.value) {
-              cotizaciones.value.push(quoteDoc);
+              const idx = cotizaciones.value.findIndex(q => q.id === currentId);
+              if (idx !== -1) cotizaciones.value[idx] = quoteDoc;
+              else cotizaciones.value.push(quoteDoc);
               persistLocalData();
-              cart.value = [];
-              posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-              alert(`¡Cotización guardada! Código: ${currentId}.`);
+              resetPos();
+              alert(mensaje);
               currentTab.value = 'cotizaciones';
             } else {
               try {
                 appLoading.value = true;
                 await db.value.collection('cotizaciones').doc(currentId).set(quoteDoc);
-                cart.value = [];
-                posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-                alert(`¡Cotización registrada! Código: ${currentId}.`);
+                resetPos();
+                alert(mensaje);
                 currentTab.value = 'cotizaciones';
               } catch (err) {
                 alert("Error guardando cotización en Firestore: " + err.message);
@@ -2250,6 +2750,27 @@
                 appLoading.value = false;
               }
             }
+          }
+
+          function cargarCotizacion(cotizacion, modo) {
+            resetPos();
+            cotizacionActivaId.value = cotizacion.id;
+            cotizacionModo.value = modo;
+            cargarLineasEnCarrito(cotizacion, cotizacion.total_cotizado);
+            currentTab.value = 'pos';
+          }
+
+          function iniciarEdicionCotizacion(cotizacion) {
+            cargarCotizacion(cotizacion, 'editar');
+          }
+
+          function iniciarConversionCotizacion(cotizacion) {
+            cargarCotizacion(cotizacion, 'convertir');
+          }
+
+          function cancelarCotizacionActiva() {
+            resetPos();
+            currentTab.value = 'cotizaciones';
           }
 
           async function deleteCotizacion(id) {
@@ -2270,6 +2791,18 @@
               }
             }
           }
+
+          const pdfTotal = computed(() => {
+            const d = pdfPreviewModal.data;
+            return (pdfPreviewModal.type === 'factura' ? d.total_venta : d.total_cotizado) || 0;
+          });
+
+          const pdfAjuste = computed(() => Number(pdfPreviewModal.data.ajuste_total) || 0);
+
+          const pdfSubtotal = computed(() => {
+            const sub = pdfPreviewModal.data.subtotal_lineas;
+            return sub !== undefined ? sub : pdfTotal.value;
+          });
 
           function openPdfPreview(doc, type = 'cotizacion') {
             pdfPreviewModal.type = type;
@@ -2294,7 +2827,9 @@
           async function processSalesCheckout() {
             if (cart.value.length === 0) return;
             if (isStockDeficit.value) { alert("Stock insuficiente."); return; }
-            if (!posPagoCompleto.value && posAbono.value > cartPriceTotal.value) { alert("El abono no puede superar el total."); return; }
+            if (!ajusteValido.value) { alert("Escribe un total final válido."); return; }
+            const abonoInicial = Number(posAbono.value) || 0;
+            if (!posPagoCompleto.value && abonoInicial > cartPriceTotal.value) { alert("El abono no puede superar el total."); return; }
 
             const isEncargo = !posPagoCompleto.value;
             
@@ -2307,35 +2842,27 @@
               currentId = getNextId(isEncargo ? encargos.value : ventas.value, isEncargo ? 'PED' : 'FAC');
             }
             
-            const recProducts = cart.value.map(item => {
-              const baseValue = productos.value.find(p => p.id === item.productoId);
-              return { id: item.productoId, nombre: baseValue.nombre, precio_venta: baseValue.precio_venta, cantidad: item.cantidad };
-            });
-
             const docData = {
               id: currentId,
               fecha: (editingEncargoId.value && isEncargo) ? originalEncargoData.value.fecha : new Date().toISOString(),
-              productos: recProducts,
+              productos: construirLineasDoc(),
+              subtotal_lineas: cartSubtotal.value,
+              ajuste_total: cartAjuste.value,
               total_venta: cartPriceTotal.value,
               total_costo: cartCostTotal.value,
               total_ganancia: cartPriceTotal.value - cartCostTotal.value,
               cliente: { nombre: posCliente.nombre.trim(), telefono: posCliente.telefono.trim(), email: posCliente.email.trim() }
             };
 
-            if (isEncargo) docData.abono = posAbono.value;
+            if (isEncargo) docData.abono = abonoInicial;
 
-            const refundMap = {};
-            if (editingEncargoId.value && originalEncargoData.value) {
-              originalEncargoData.value.productos.forEach(item => {
-                const p = productos.value.find(prod => prod.id === item.id);
-                if (p && p.receta) {
-                  p.receta.forEach(ing => {
-                    const neededAmount = (ing.cantidad || 0) * item.cantidad;
-                    refundMap[ing.insumoId] = (refundMap[ing.insumoId] || 0) + neededAmount;
-                  });
-                }
-              });
-            }
+            const cotizacionOrigen = cotizacionModo.value === 'convertir' ? cotizacionActivaId.value : null;
+            if (cotizacionOrigen) docData.cotizacion_origen = cotizacionOrigen;
+            else if (originalEncargoData.value && originalEncargoData.value.cotizacion_origen) docData.cotizacion_origen = originalEncargoData.value.cotizacion_origen;
+
+            const refundMap = (editingEncargoId.value && originalEncargoData.value)
+              ? calcularConsumo(originalEncargoData.value.productos)
+              : {};
 
             const consolidations = consolidatedCartRequiredIngredients.value;
             const allAffectedInsumos = [...new Set([...Object.keys(refundMap), ...Object.keys(consolidations)])];
@@ -2345,7 +2872,7 @@
                 const ism = insumos.value.find(i => i.id === insId);
                 if (ism) {
                   const netChange = (refundMap[insId] || 0) - (consolidations[insId] || 0);
-                  ism.stock_actual = Math.max(0, ism.stock_actual + netChange);
+                  ism.stock_actual = Math.max(0, Math.round((ism.stock_actual + netChange) * 10000) / 10000);
                 }
               });
 
@@ -2353,12 +2880,15 @@
               
               if (isEncargo) encargos.value.push(docData);
               else ventas.value.push(docData);
-              
+
+              if (cotizacionOrigen) {
+                const cot = cotizaciones.value.find(q => q.id === cotizacionOrigen);
+                if (cot) { cot.estado = 'convertida'; cot.convertida_a = currentId; }
+              }
+
               persistLocalData();
-              cart.value = []; posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-              posPagoCompleto.value = true; posAbono.value = 0;
-              editingEncargoId.value = null; originalEncargoData.value = null;
-              
+              resetPos();
+
               alert(isEncargo ? `Pedido ${currentId} guardado con éxito.` : `Factura ${currentId} generada.`);
               currentTab.value = isEncargo ? 'encargos' : 'dashboard';
             } else {
@@ -2373,18 +2903,20 @@
                 batch.set(db.value.collection(isEncargo ? 'encargos' : 'ventas').doc(currentId), docData);
 
                 allAffectedInsumos.forEach(insId => {
-                  const netChange = (refundMap[insId] || 0) - (consolidations[insId] || 0);
+                  const netChange = Math.round(((refundMap[insId] || 0) - (consolidations[insId] || 0)) * 10000) / 10000;
                   if (netChange !== 0) {
                      const itemRef = db.value.collection('insumos').doc(insId);
                      batch.update(itemRef, { stock_actual: firebase.firestore.FieldValue.increment(netChange) });
                   }
                 });
 
+                if (cotizacionOrigen) {
+                  batch.update(db.value.collection('cotizaciones').doc(cotizacionOrigen), { estado: 'convertida', convertida_a: currentId });
+                }
+
                 await batch.commit();
-                cart.value = []; posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-                posPagoCompleto.value = true; posAbono.value = 0;
-                editingEncargoId.value = null; originalEncargoData.value = null;
-                
+                resetPos();
+
                 alert(isEncargo ? `Pedido ${currentId} actualizado en la nube.` : `Factura ${currentId} generada.`);
                 currentTab.value = isEncargo ? 'encargos' : 'dashboard';
               } catch (err) { alert("Error: " + err.message); } finally { appLoading.value = false; }
@@ -2392,29 +2924,22 @@
           }
 
           function iniciarEdicionEncargo(encargo) {
+            resetPos();
             editingEncargoId.value = encargo.id;
             originalEncargoData.value = JSON.parse(JSON.stringify(encargo));
-            cart.value = encargo.productos.map(p => ({ productoId: p.id, cantidad: p.cantidad }));
-            posCliente.nombre = encargo.cliente?.nombre || '';
-            posCliente.telefono = encargo.cliente?.telefono || '';
-            posCliente.email = encargo.cliente?.email || '';
+            cargarLineasEnCarrito(encargo, encargo.total_venta);
             posPagoCompleto.value = false;
-            posAbono.value = encargo.abono || 0;
+            posAbono.value = Number(encargo.abono) || 0;
             currentTab.value = 'pos';
           }
 
           function cancelarEdicionEncargo() {
-            editingEncargoId.value = null;
-            originalEncargoData.value = null;
-            cart.value = [];
-            posCliente.nombre = ''; posCliente.telefono = ''; posCliente.email = '';
-            posPagoCompleto.value = true;
-            posAbono.value = 0;
+            resetPos();
             currentTab.value = 'encargos';
           }
 
           async function liquidarEncargo(encargo) {
-            const c = confirm(`¿Confirmas que el cliente pagó los $${(encargo.total_venta - encargo.abono).toFixed(2)} restantes?`);
+            const c = confirm(`¿Confirmas que el cliente pagó los ${money(encargo.total_venta - (Number(encargo.abono) || 0))} restantes?`);
             if(!c) return;
 
             const newFacId = getNextId(ventas.value, 'FAC');
@@ -2442,16 +2967,7 @@
             if (!c) return;
 
             // Calcular matemáticamente los materiales a devolver basándose en las recetas
-            const materialsToReturn = {};
-            encargo.productos.forEach(item => {
-              const p = productos.value.find(prod => prod.id === item.id);
-              if (p && p.receta) {
-                p.receta.forEach(ing => {
-                  const neededAmount = (ing.cantidad || 0) * item.cantidad;
-                  materialsToReturn[ing.insumoId] = (materialsToReturn[ing.insumoId] || 0) + neededAmount;
-                });
-              }
-            });
+            const materialsToReturn = calcularConsumo(encargo.productos);
 
             if (isDemoMode.value) {
               Object.keys(materialsToReturn).forEach(insId => {
@@ -2525,6 +3041,7 @@
               ventas.value = JSON.parse(JSON.stringify(demoVentas));
               cotizaciones.value = JSON.parse(JSON.stringify(demoCotizaciones));
               movimientos.value = [];
+              encargos.value = [];
               persistLocalData();
               alert("Base de datos local reestablecida.");
             } else {
@@ -2656,6 +3173,40 @@
             getProductoPrice,
             cartPriceTotal,
             cartCostTotal,
+            cartSubtotal,
+            cartAjuste,
+            cartItemCount,
+            cartLineName,
+            cartLineBaseName,
+            cartLineUnit,
+            cartLineBajoCosto,
+            setCartItemQty,
+            toggleAjuste,
+            ajusteValido,
+            posAjusteActivo,
+            posTotalFinal,
+            lineaModal,
+            lineaInfo,
+            openLineaModal,
+            addConceptoLibre,
+            onLineaCantidad,
+            onLineaTotal,
+            onLineaUnitario,
+            saveLinea,
+            restaurarLinea,
+            money,
+            formatQty,
+            docQty,
+            docUnit,
+            docSubtotal,
+            pdfTotal,
+            pdfSubtotal,
+            pdfAjuste,
+            cotizacionActivaId,
+            cotizacionModo,
+            iniciarEdicionCotizacion,
+            iniciarConversionCotizacion,
+            cancelarCotizacionActiva,
             
             consolidatedCartRequiredIngredients,
             stockDeficitReport,
