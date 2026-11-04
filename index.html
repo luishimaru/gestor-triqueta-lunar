@@ -1068,6 +1068,18 @@
                 </div>
               </div>
 
+              <div v-if="pdfPreviewModal.type === 'cotizacion'" class="mt-8 bg-slate-50 border border-slate-100 rounded-xl p-3.5 flex items-center gap-4">
+                <div class="shrink-0 text-center pr-4 border-r border-slate-200">
+                  <img src="logo-breb.png" alt="Bre-B" class="h-7 w-auto object-contain mx-auto mb-1.5">
+                  <p class="text-[9px] uppercase font-bold text-indigo-600 tracking-wider"><i class="fas fa-key mr-1"></i>Llave</p>
+                  <p class="font-mono font-bold text-slate-900 text-[12px]">0093123524</p>
+                </div>
+                <div class="text-[10px] text-slate-600 leading-relaxed space-y-1">
+                  <p>Empezamos a fabricar tus productos con el <b class="text-slate-800">abono del 50%</b>. Iniciamos el trabajo una vez nos envíes el comprobante de la transferencia por el chat.</p>
+                  <p><b class="text-slate-800">Tiempo de entrega estimado:</b> 2 a 3 días hábiles, según disponibilidad.</p>
+                </div>
+              </div>
+
               <div class="mt-12 text-center text-[9px] text-slate-400 border-t border-dashed border-slate-200 pt-4 font-medium leading-relaxed">
                 <span v-if="pdfPreviewModal.type === 'cotizacion'">
                   Esta cotización tiene fines meramente administrativos e informativos. Los precios reflejados están sujetos a modificaciones según la variación del coste de las materias primas necesarias para la fabricación.
